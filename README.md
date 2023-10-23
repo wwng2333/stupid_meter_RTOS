@@ -10,3 +10,5 @@ Screen: ST7735
 DC-DC buck: MP2451
 
 2-Layer board
+
+Refer to bare-metal version: https://github.com/wwng2333/stupid_meter/tree/RevB-AT32F421
