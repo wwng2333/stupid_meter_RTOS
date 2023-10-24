@@ -94,14 +94,14 @@ static const osThreadAttr_t ThreadAttr_app_main =
 static const osThreadAttr_t ThreadAttr_key_scan =
     {
         .name = "key_scan",
-        .priority = (osPriority_t)osPriorityNormal7,
+        .priority = (osPriority_t)osPriorityHigh,
         .stack_size = 256};
 		
 static const osThreadAttr_t ThreadAttr_i2c_read =
     {
         .name = "i2c_read",
         .priority = (osPriority_t)osPriorityNormal3,
-        .stack_size = 512};
+        .stack_size = 256};
 
 static const osThreadAttr_t ThreadAttr_LCD_Update =
     {
@@ -155,6 +155,7 @@ __NO_RETURN void key_scan_thread1(void *arg)
 						LCD_Init_Swap();
 					}
 					LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
+					osDelay(10);
 					osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 					key_state.key_pressed_time = 0;
 					key_state.key_hold_time = 0;
@@ -240,7 +241,7 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 			
 			case 4:
 				LCD_DrawLine(0, 14, 160, 14, GBLUE);
-				sprintf(Calc, "%.1fV %.3fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
+				sprintf(Calc, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
 				LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
 				sprintf(Calc, "Max  Avg  Min");
 				LCD_ShowString(18, 14, Calc, GBLUE, BLACK, 16, 1);

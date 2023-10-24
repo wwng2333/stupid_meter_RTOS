@@ -2,7 +2,7 @@
 #include "cmsis_os2.h"
 #include "I2C.h"
 
-#define __Crazy_DEBUG
+//#define __Crazy_DEBUG
 
 void I2C_Delay(void)
 {
