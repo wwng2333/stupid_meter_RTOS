@@ -37,7 +37,8 @@ extern "C" {
 
 /* private includes -------------------------------------------------------------*/
 /* add user code begin private includes */
-
+#include "SEGGER_RTT.h"
+#include "delay.h"
 /* add user code end private includes */
 
 /* exported types -------------------------------------------------------------*/

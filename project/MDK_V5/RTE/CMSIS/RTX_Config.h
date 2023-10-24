@@ -100,7 +100,7 @@
 //     <i> Defines maximum number of user threads that can be active at the same time.
 //     <i> Applies to user threads with system provided memory for control blocks.
 #ifndef OS_THREAD_NUM
-#define OS_THREAD_NUM               8
+#define OS_THREAD_NUM               4
 #endif
  
 //     <o>Number of user Threads with default Stack size <0-1000>
@@ -115,7 +115,7 @@
 //     <i> Applies to user threads with user-provided stack size and system provided memory for stack.
 //     <i> Default: 0
 #ifndef OS_THREAD_USER_STACK_SIZE
-#define OS_THREAD_USER_STACK_SIZE   4096
+#define OS_THREAD_USER_STACK_SIZE   0
 #endif
  
 //   </e>
@@ -146,7 +146,7 @@
 //   <i> Enables stack overrun check at thread switch (requires RTX source variant).
 //   <i> Enabling this option increases slightly the execution time of a thread switch.
 #ifndef OS_STACK_CHECK
-#define OS_STACK_CHECK              0
+#define OS_STACK_CHECK              1
 #endif
  
 //   <q>Stack usage watermark

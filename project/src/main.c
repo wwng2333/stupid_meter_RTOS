@@ -26,6 +26,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "at32f421_wk_config.h"
+#include "I2C.h"
 #include "cmsis_os2.h"
 #include "RTE_Components.h"
 /* private includes ----------------------------------------------------------*/
@@ -64,9 +65,11 @@ uint16_t test2 = 0;
 
 __NO_RETURN void Thread_1(void *arg)
 {
+	__IO uint8_t test3[256] = {0};
 	for (;;)
 	{
 		test1++;
+		test3[test1] = test1;
 		osDelay(50);
 	}
 }
@@ -80,7 +83,7 @@ __NO_RETURN void Thread_2(void *arg)
 	}
 }
 
-const osThreadAttr_t Thread_1_attr = { .stack_size = 128 };
+const osThreadAttr_t Thread_1_attr = { .stack_size = 512 };
 const osThreadAttr_t Thread_2_attr = { .stack_size = 128 };
 
 /* add user code end 0 */
@@ -101,6 +104,9 @@ int main(void)
 
   /* config periph clock. */
   wk_periph_clock_config();
+	delay_init();
+	I2C_Soft_Init();
+	INA226_Init();
 
   /* nvic config. */
   wk_nvic_config();
