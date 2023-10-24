@@ -69,6 +69,9 @@ struct Queue Voltage_queue = { .front = 0, .rear = 0};
 struct Queue Current_queue = { .front = 0, .rear = 0};
 struct Queue Power_queue = { .front = 0, .rear = 0};
 
+float mAh = 0.0f;
+float mWh = 0.0f;
+
 __IO uint8_t USE_HORIZONTAL = 3;
 uint8_t Status = 0;
 uint8_t SavedPoint[SIZE] = {0};
@@ -140,7 +143,6 @@ __NO_RETURN void key_scan_thread1(void *arg)
         key_state.released = 1;
 				if(key_state.key_pressed_time > 0)
 				{
-					osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 					if(key_state.key_hold_time < 200)
 					{
 						if(Status < 4) Status++;
@@ -150,9 +152,10 @@ __NO_RETURN void key_scan_thread1(void *arg)
 					{
 						if(USE_HORIZONTAL == 3) USE_HORIZONTAL = 2;
 						else USE_HORIZONTAL = 3;
-						LCD_Init();
+						LCD_Init_Swap();
 					}
 					LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
+					osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 					key_state.key_pressed_time = 0;
 					key_state.key_hold_time = 0;
 				}
@@ -172,6 +175,8 @@ __NO_RETURN void i2c_read_thread1(void *arg)
 		enqueue(&Voltage_queue, ina226_info.Voltage);
 		enqueue(&Current_queue, ina226_info.Current);
 		enqueue(&Power_queue, ina226_info.Power);
+		mAh += 0.5 * ina226_info.Current / 3.6;
+		mWh += 0.5 * ina226_info.Power / 3.6;
 		osDelay(500);
 	}
 }
@@ -210,11 +215,11 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 				LCD_ShowString(96, 2, Calc, GBLUE, BLACK, 12, 0);
 				sprintf(Calc, "Vcc:%.2fV", ADC_result.vcc);
 				LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
-//				sprintf(Calc, "%.2fmAh", mAh);
-//				LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
-//				if(mWh < 10000) sprintf(Calc, "%.2fmWh", mWh);
-//				else sprintf(Calc, "%.1fmWh", mWh);
-//				LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
+				sprintf(Calc, "%.2fmAh", mAh);
+				LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
+				if(mWh < 10000) sprintf(Calc, "%.2fmWh", mWh);
+				else sprintf(Calc, "%.1fmWh", mWh);
+				LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
 				if(USE_HORIZONTAL == 3) 
 					LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
 				else 
@@ -248,7 +253,6 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 			break;
 		}
 		osEventFlagsClear(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
-		//osDelay(100);
 	}
 }
 
