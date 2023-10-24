@@ -2,6 +2,9 @@
 #define __LCD_H		
 
 #include "at32f421_wk_config.h"
+#include "Queue.h"
+
+void LCD_ChartPrint(char flag, char unit, struct Queue* queue);
 
 void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color);//指定区域填充颜色
 void LCD_DrawPoint(u16 x,u16 y,u16 color);//在指定位置画一个点

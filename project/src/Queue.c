@@ -8,16 +8,21 @@ extern uint8_t SavedPoint[SIZE];
 void Countqueue(struct Queue* queue)
 {
 	float max = 0.0f, min = 10000.0f, avg = 0.0f;
-	int i = queue->front;
+	uint8_t i = queue->front;
+	uint8_t count = 0;
 	while (i != queue->rear) {
 		if(queue->arr[i] > max) max = queue->arr[i];
 		else if(queue->arr[i] < min) min = queue->arr[i];
-		avg += queue->arr[i];
+		if(queue->arr[i] != 0)
+		{
+			avg += queue->arr[i];
+			count++;
+		}
 		i = (i + 1) % SIZE;
 	}
 	queue->max = max;
 	queue->min = min;
-	queue->avg = avg / SIZE;
+	queue->avg = avg / count;
 }
 
 void enqueue(struct Queue* queue, float item) {
