@@ -1,27 +1,27 @@
 /* add user code begin Header */
 /**
-  **************************************************************************
-  * @file     main.c
-  * @brief    main program
-  **************************************************************************
-  *                       Copyright notice & Disclaimer
-  *
-  * The software Board Support Package (BSP) that is made available to
-  * download from Artery official website is the copyrighted work of Artery.
-  * Artery authorizes customers to use, copy, and distribute the BSP
-  * software and its related documentation for the purpose of design and
-  * development in conjunction with Artery microcontrollers. Use of the
-  * software is governed by this copyright notice and the following disclaimer.
-  *
-  * THIS SOFTWARE IS PROVIDED ON "AS IS" BASIS WITHOUT WARRANTIES,
-  * GUARANTEES OR REPRESENTATIONS OF ANY KIND. ARTERY EXPRESSLY DISCLAIMS,
-  * TO THE FULLEST EXTENT PERMITTED BY LAW, ALL EXPRESS, IMPLIED OR
-  * STATUTORY OR OTHER WARRANTIES, GUARANTEES OR REPRESENTATIONS,
-  * INCLUDING BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY,
-  * FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
-  *
-  **************************************************************************
-  */
+ **************************************************************************
+ * @file     main.c
+ * @brief    main program
+ **************************************************************************
+ *                       Copyright notice & Disclaimer
+ *
+ * The software Board Support Package (BSP) that is made available to
+ * download from Artery official website is the copyrighted work of Artery.
+ * Artery authorizes customers to use, copy, and distribute the BSP
+ * software and its related documentation for the purpose of design and
+ * development in conjunction with Artery microcontrollers. Use of the
+ * software is governed by this copyright notice and the following disclaimer.
+ *
+ * THIS SOFTWARE IS PROVIDED ON "AS IS" BASIS WITHOUT WARRANTIES,
+ * GUARANTEES OR REPRESENTATIONS OF ANY KIND. ARTERY EXPRESSLY DISCLAIMS,
+ * TO THE FULLEST EXTENT PERMITTED BY LAW, ALL EXPRESS, IMPLIED OR
+ * STATUTORY OR OTHER WARRANTIES, GUARANTEES OR REPRESENTATIONS,
+ * INCLUDING BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+ *
+ **************************************************************************
+ */
 /* add user code end Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -65,9 +65,9 @@ key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .releas
 ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f};
 ADC_result_struct ADC_result = {.result = {0}, .temp = 0.0f, .vcc = 0.0f};
 
-struct Queue Voltage_queue = { .front = 0, .rear = 0};
-struct Queue Current_queue = { .front = 0, .rear = 0};
-struct Queue Power_queue = { .front = 0, .rear = 0};
+struct Queue Voltage_queue = {.front = 0, .rear = 0};
+struct Queue Current_queue = {.front = 0, .rear = 0};
+struct Queue Power_queue = {.front = 0, .rear = 0};
 
 float mAh = 0.0f;
 float mWh = 0.0f;
@@ -86,72 +86,76 @@ char Calc[32] = {0};
 /* private user code ---------------------------------------------------------*/
 /* add user code begin 0 */
 static const osThreadAttr_t ThreadAttr_app_main =
-    {
-        .name = "app_main",
-        .priority = (osPriority_t)osPriorityNormal,
-        .stack_size = 384};
+	{
+		.name = "app_main",
+		.priority = (osPriority_t)osPriorityNormal,
+		.stack_size = 384};
 
 static const osThreadAttr_t ThreadAttr_key_scan =
-    {
-        .name = "key_scan",
-        .priority = (osPriority_t)osPriorityHigh,
-        .stack_size = 256};
-		
+	{
+		.name = "key_scan",
+		.priority = (osPriority_t)osPriorityHigh,
+		.stack_size = 256};
+
 static const osThreadAttr_t ThreadAttr_i2c_read =
-    {
-        .name = "i2c_read",
-        .priority = (osPriority_t)osPriorityNormal3,
-        .stack_size = 256};
+	{
+		.name = "i2c_read",
+		.priority = (osPriority_t)osPriorityNormal3,
+		.stack_size = 256};
 
 static const osThreadAttr_t ThreadAttr_LCD_Update =
-    {
-        .name = "LCD_Update",
-        .priority = (osPriority_t)osPriorityNormal2,
-        .stack_size = 1024};
+	{
+		.name = "LCD_Update",
+		.priority = (osPriority_t)osPriorityNormal2,
+		.stack_size = 1024};
 
 static const osThreadAttr_t ThreadAttr_ADC_Update =
-    {
-        .name = "ADC_Update",
-        .priority = (osPriority_t)osPriorityNormal4,
-        .stack_size = 256};
+	{
+		.name = "ADC_Update",
+		.priority = (osPriority_t)osPriorityNormal4,
+		.stack_size = 256};
 
 static const osEventFlagsAttr_t FlagsAttr_LCD_Update_event =
-    {
-        .name = "LCD_Update_evt"};
+	{
+		.name = "LCD_Update_evt"};
 
 static const osTimerAttr_t timerAttr_lcd_cb = {
-    .name = "LCD_timer0",
+	.name = "LCD_timer0",
 };
 
 __NO_RETURN void key_scan_thread1(void *arg)
 {
-  for (;;)
-  {
-    if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
-    {
-      osDelay(50);
-      if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
-      {
-        key_state.key_pressed_time++;
-        key_state.key_hold_time = 0;
-        while (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
-        {
-          key_state.released = 0;
-          key_state.key_hold_time += 50;
-          osDelay(50);
-        }
-        key_state.released = 1;
-				if(key_state.key_pressed_time > 0)
+	for (;;)
+	{
+		if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
+		{
+			osDelay(50);
+			if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
+			{
+				key_state.key_pressed_time++;
+				key_state.key_hold_time = 0;
+				while (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
 				{
-					if(key_state.key_hold_time < 200)
+					key_state.released = 0;
+					key_state.key_hold_time += 50;
+					osDelay(50);
+				}
+				key_state.released = 1;
+				if (key_state.key_pressed_time > 0)
+				{
+					if (key_state.key_hold_time < 200)
 					{
-						if(Status < 4) Status++;
-						else Status = 0;
+						if (Status < 4)
+							Status++;
+						else
+							Status = 0;
 					}
-					else 
+					else
 					{
-						if(USE_HORIZONTAL == 3) USE_HORIZONTAL = 2;
-						else USE_HORIZONTAL = 3;
+						if (USE_HORIZONTAL == 3)
+							USE_HORIZONTAL = 2;
+						else
+							USE_HORIZONTAL = 3;
 						LCD_Init_Swap();
 					}
 					LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
@@ -160,16 +164,16 @@ __NO_RETURN void key_scan_thread1(void *arg)
 					key_state.key_pressed_time = 0;
 					key_state.key_hold_time = 0;
 				}
-      }
-    }
-    osDelay(50);
-  }
+			}
+		}
+		osDelay(50);
+	}
 }
 
 __NO_RETURN void i2c_read_thread1(void *arg)
 {
-  for (;;)
-  {
+	for (;;)
+	{
 		ina226_info.Voltage = INA226_Read_Voltage();
 		ina226_info.Current = INA226_Read_Current();
 		ina226_info.Power = ina226_info.Voltage * ina226_info.Current;
@@ -186,71 +190,78 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 {
 	bool __Refresh_NOW = 0;
 	uint32_t tick = 0;
-  for (;;)
-  {
+	for (;;)
+	{
 		osEventFlagsWait(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG, osFlagsWaitAny, osWaitForever);
-		switch(Status)
+		switch (Status)
 		{
-			case 0: 
-				LCD_DrawLine(88, 2, 88, 78, WHITE);
-				LCD_DrawLine(89, 2, 89, 78, WHITE);
-				if(ina226_info.Voltage < 10) sprintf(Calc, "%.3fV", ina226_info.Voltage);
-				else sprintf(Calc, "%.2fV", ina226_info.Voltage);
-				LCD_ShowString2416(0, 2, Calc, LIGHTBLUE, BLACK);
-				
-				sprintf(Calc, "%.3fA", ina226_info.Current);
-				LCD_ShowString2416(0, 29, Calc, BLUE, BLACK);
-				#ifdef __Crazy_DEBUG 
-				SEGGER_RTT_printf(0, "%s\r\n", Calc);
-				#endif
-			
-				if(ina226_info.Power < 10) sprintf(Calc, "%.3fW", ina226_info.Power);
-				else if(ina226_info.Power < 100) sprintf(Calc, "%.2fW", ina226_info.Power);
-				else sprintf(Calc, "%.1fW", ina226_info.Power);
-				LCD_ShowString2416(0, 56, Calc, GBLUE, BLACK);
-				#ifdef __Crazy_DEBUG 
-				SEGGER_RTT_printf(0, "%s\r\n", Calc);
-				#endif
-				
-				sprintf(Calc, "MCU:%.1fC", ADC_result.temp);
-				LCD_ShowString(96, 2, Calc, GBLUE, BLACK, 12, 0);
-				sprintf(Calc, "Vcc:%.2fV", ADC_result.vcc);
-				LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
-				sprintf(Calc, "%.2fmAh", mAh);
-				LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
-				if(mWh < 10000) sprintf(Calc, "%.2fmWh", mWh);
-				else sprintf(Calc, "%.1fmWh", mWh);
-				LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
-				if(USE_HORIZONTAL == 3) 
-					LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
-				else 
-					LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
+		case 0:
+			LCD_DrawLine(88, 2, 88, 78, WHITE);
+			LCD_DrawLine(89, 2, 89, 78, WHITE);
+			if (ina226_info.Voltage < 10)
+				sprintf(Calc, "%.3fV", ina226_info.Voltage);
+			else
+				sprintf(Calc, "%.2fV", ina226_info.Voltage);
+			LCD_ShowString2416(0, 2, Calc, LIGHTBLUE, BLACK);
+
+			sprintf(Calc, "%.3fA", ina226_info.Current);
+			LCD_ShowString2416(0, 29, Calc, BLUE, BLACK);
+#ifdef __Crazy_DEBUG
+			SEGGER_RTT_printf(0, "%s\r\n", Calc);
+#endif
+
+			if (ina226_info.Power < 10)
+				sprintf(Calc, "%.3fW", ina226_info.Power);
+			else if (ina226_info.Power < 100)
+				sprintf(Calc, "%.2fW", ina226_info.Power);
+			else
+				sprintf(Calc, "%.1fW", ina226_info.Power);
+			LCD_ShowString2416(0, 56, Calc, GBLUE, BLACK);
+#ifdef __Crazy_DEBUG
+			SEGGER_RTT_printf(0, "%s\r\n", Calc);
+#endif
+
+			sprintf(Calc, "MCU:%.1fC", ADC_result.temp);
+			LCD_ShowString(96, 2, Calc, GBLUE, BLACK, 12, 0);
+			sprintf(Calc, "Vcc:%.2fV", ADC_result.vcc);
+			LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
+			sprintf(Calc, "%.2fmAh", mAh);
+			LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
+			if (mWh < 10000)
+				sprintf(Calc, "%.2fmWh", mWh);
+			else
+				sprintf(Calc, "%.1fmWh", mWh);
+			LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
+			if (USE_HORIZONTAL == 3)
+				LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
+			else
+				LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
 			break;
-			
-			case 1:
-				LCD_ChartPrint('V', 'V', &Voltage_queue);
+
+		case 1:
+			LCD_ChartPrint('V', 'V', &Voltage_queue);
 			break;
-			
-			case 2:
-				LCD_ChartPrint('A', 'A', &Current_queue);
+
+		case 2:
+			LCD_ChartPrint('A', 'A', &Current_queue);
 			break;
-			
-			case 3:
-				LCD_ChartPrint('P', 'W', &Power_queue);
+
+		case 3:
+			LCD_ChartPrint('P', 'W', &Power_queue);
 			break;
-			
-			case 4:
-				LCD_DrawLine(0, 14, 160, 14, GBLUE);
-				sprintf(Calc, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
-				LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
-				sprintf(Calc, "Max  Avg  Min");
-				LCD_ShowString(18, 14, Calc, GBLUE, BLACK, 16, 1);
-				sprintf(Calc, "%c %.2f %.2f %.2f", 'V', Voltage_queue.max, Voltage_queue.avg, Voltage_queue.min);
-				LCD_ShowString(1, 30, Calc, GBLUE, BLACK, 16, 0);
-				sprintf(Calc, "%c %.2f %.2f %.2f", 'A', Current_queue.max, Current_queue.avg, Current_queue.min);
-				LCD_ShowString(1, 46, Calc, GBLUE, BLACK, 16, 0);
-				sprintf(Calc, "%c %.2f %.2f %.2f", 'W', Power_queue.max, Power_queue.avg, Power_queue.min);
-				LCD_ShowString(1, 62, Calc, GBLUE, BLACK, 16, 0);
+
+		case 4:
+			LCD_DrawLine(0, 14, 160, 14, GBLUE);
+			sprintf(Calc, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
+			LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
+			sprintf(Calc, "Max  Avg  Min");
+			LCD_ShowString(18, 14, Calc, GBLUE, BLACK, 16, 1);
+			sprintf(Calc, "%c %.2f %.2f %.2f", 'V', Voltage_queue.max, Voltage_queue.avg, Voltage_queue.min);
+			LCD_ShowString(1, 30, Calc, GBLUE, BLACK, 16, 0);
+			sprintf(Calc, "%c %.2f %.2f %.2f", 'A', Current_queue.max, Current_queue.avg, Current_queue.min);
+			LCD_ShowString(1, 46, Calc, GBLUE, BLACK, 16, 0);
+			sprintf(Calc, "%c %.2f %.2f %.2f", 'W', Power_queue.max, Power_queue.avg, Power_queue.min);
+			LCD_ShowString(1, 62, Calc, GBLUE, BLACK, 16, 0);
 			break;
 		}
 		osEventFlagsClear(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
@@ -259,8 +270,8 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 
 __NO_RETURN void ADC_Update_thread1(void *arg)
 {
-  for (;;)
-  {
+	for (;;)
+	{
 		adc_ordinary_software_trigger_enable(ADC1, TRUE);
 		ADC_result.vcc = ((float)1.2 * 4095) / ADC_result.result[1];
 		ADC_result.temp = ((1.26) - (float)ADC_result.result[0] * ADC_result.vcc / 4096) / (-0.00423) + 25;
@@ -279,63 +290,64 @@ void app_main(void *arg)
 	LCD_Init();
 	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
 	LCD_Update_flagID = osEventFlagsNew(&FlagsAttr_LCD_Update_event);
-	
+
 	key_scan_ID = osThreadNew(key_scan_thread1, NULL, &ThreadAttr_key_scan);
 	i2c_read_ID = osThreadNew(i2c_read_thread1, NULL, &ThreadAttr_i2c_read);
 	ADC_Update_ID = osThreadNew(ADC_Update_thread1, NULL, &ThreadAttr_ADC_Update);
 	LCD_Update_ID = osThreadNew(LCD_Update_thread1, NULL, &ThreadAttr_LCD_Update);
-	
+
 	timer0 = osTimerNew(&lcd_timer_cb, osTimerPeriodic, (void *)0, &timerAttr_lcd_cb);
 	osTimerStart(timer0, 500);
 }
-				
+
 /* add user code end 0 */
 
 /**
-  * @brief main function.
-  * @param  none
-  * @retval none
-  */
+ * @brief main function.
+ * @param  none
+ * @retval none
+ */
 int main(void)
 {
-  /* add user code begin 1 */
+	/* add user code begin 1 */
 
-  /* add user code end 1 */
-	
-  /* system clock config. */
-  wk_system_clock_config();
-	//delay_init();
+	/* add user code end 1 */
+
+	/* system clock config. */
+	wk_system_clock_config();
+	// delay_init();
 	EventRecorderInitialize(EventRecordAll, 1U);
 	EventRecorderStart();
-	
-  /* nvic config. */
-  wk_nvic_config();
+
+	/* nvic config. */
+	wk_nvic_config();
 	wk_gpio_config();
-	
+
 	/* adc config. */
 	wk_dma1_channel1_init();
 	wk_adc1_init();
 	wk_dma_channel_config(DMA1_CHANNEL1, (uint32_t)&ADC1->odt, (uint32_t)ADC_result.result, 2);
 	dma_channel_enable(DMA1_CHANNEL1, TRUE);
-	
-  /* config periph clock. */
-  wk_periph_clock_config();
+
+	/* config periph clock. */
+	wk_periph_clock_config();
 	I2C_Soft_Init();
-	
+
 	/* config LCD screen. */
 	LCD_SPI1_init();
 
-  /* add user code begin 2 */
+	/* add user code begin 2 */
 	osKernelInitialize();
 	app_main_ID = osThreadNew(app_main, NULL, &ThreadAttr_app_main);
-  while (osKernelGetState() != osKernelReady);
+	while (osKernelGetState() != osKernelReady)
+		;
 	osKernelStart();
-  /* add user code end 2 */
+	/* add user code end 2 */
 
-  while(1)
-  {
-    /* add user code begin 3 */
+	while (1)
+	{
+		/* add user code begin 3 */
 
-    /* add user code end 3 */
-  }
+		/* add user code end 3 */
+	}
 }
