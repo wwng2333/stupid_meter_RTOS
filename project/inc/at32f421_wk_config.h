@@ -71,6 +71,9 @@ typedef struct ADC_result_struct
 /* add user code begin exported constants */
 #define KEY_PIN_Pin GPIO_PINS_0
 #define KEY_PIN_GPIO_Port GPIOB
+
+#define LCD_KEY_UPDATE_FLAG (1U << 0)
+#define LCD_MAIN_UPDATE_FLAG (1U << 1)
 /* add user code end exported constants */
 
 /* exported macro ------------------------------------------------------------*/
