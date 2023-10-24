@@ -29,6 +29,7 @@
 #include "I2C.h"
 #include "cmsis_os2.h"
 #include "RTE_Components.h"
+#include "EventRecorder.h"
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
 
@@ -51,8 +52,12 @@
 
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
-uint16_t test1 = 0;
-uint16_t test2 = 0;
+
+osThreadId_t key_scan_ID, app_main_ID, i2c_read_ID;
+
+key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .released = 1};
+ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f};
+
 /* add user code end private variables */
 
 /* private function prototypes --------------------------------------------*/
@@ -62,30 +67,66 @@ uint16_t test2 = 0;
 
 /* private user code ---------------------------------------------------------*/
 /* add user code begin 0 */
+static const osThreadAttr_t ThreadAttr_app_main =
+    {
+        .name = "app_main",
+        .priority = (osPriority_t)osPriorityNormal,
+        .stack_size = 256};
 
-__NO_RETURN void Thread_1(void *arg)
+static const osThreadAttr_t ThreadAttr_key_scan =
+    {
+        .name = "key_scan",
+        .priority = (osPriority_t)osPriorityNormal,
+        .stack_size = 256};
+		
+static const osThreadAttr_t ThreadAttr_i2c_read =
+    {
+        .name = "i2c_read",
+        .priority = (osPriority_t)osPriorityNormal,
+        .stack_size = 128};
+
+
+__NO_RETURN void key_scan_thread1(void *arg)
 {
-	__IO uint8_t test3[256] = {0};
-	for (;;)
-	{
-		test1++;
-		test3[test1] = test1;
-		osDelay(50);
-	}
+  for (;;)
+  {
+    if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
+    {
+      osDelay(50);
+      if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
+      {
+        key_state.key_pressed_time++;
+        key_state.key_hold_time = 0;
+        while (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
+        {
+          key_state.released = 0;
+          key_state.key_hold_time += 50;
+          osDelay(50);
+        }
+        key_state.released = 1;
+      }
+    }
+    osDelay(50);
+  }
 }
 
-__NO_RETURN void Thread_2(void *arg)
+__NO_RETURN void i2c_read_thread1(void *arg)
 {
-	for (;;)
-	{
-		test2++;
+  for (;;)
+  {
+		ina226_info.Voltage = INA226_Read_Voltage();
+		ina226_info.Current = INA226_Read_Current();
+		ina226_info.Power = ina226_info.Voltage * ina226_info.Current;
 		osDelay(500);
 	}
 }
 
-const osThreadAttr_t Thread_1_attr = { .stack_size = 512 };
-const osThreadAttr_t Thread_2_attr = { .stack_size = 128 };
-
+void app_main(void *arg)
+{
+	key_scan_ID = osThreadNew(key_scan_thread1, NULL, &ThreadAttr_key_scan);
+	i2c_read_ID = osThreadNew(i2c_read_thread1, NULL, &ThreadAttr_i2c_read);
+}
+				
 /* add user code end 0 */
 
 /**
@@ -96,7 +137,8 @@ const osThreadAttr_t Thread_2_attr = { .stack_size = 128 };
 int main(void)
 {
   /* add user code begin 1 */
-
+	EventRecorderInitialize(EventRecordAll, 1U);
+	EventRecorderStart();
   /* add user code end 1 */
 
   /* system clock config. */
@@ -110,14 +152,15 @@ int main(void)
 
   /* nvic config. */
   wk_nvic_config();
+	wk_gpio_config();
 
   /* add user code begin 2 */
 	osKernelInitialize();
-	
-	osThreadNew(Thread_1, NULL, &Thread_1_attr);
-	osThreadNew(Thread_2, NULL, &Thread_2_attr);
-	
-	osKernelStart(); 
+	app_main_ID = osThreadNew(app_main, NULL, &ThreadAttr_app_main);
+  if (osKernelGetState() == osKernelReady)
+  {
+    osKernelStart();
+  }
   /* add user code end 2 */
 
   while(1)

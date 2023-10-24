@@ -39,16 +39,31 @@ extern "C" {
 /* add user code begin private includes */
 #include "SEGGER_RTT.h"
 #include "delay.h"
+#include <stdio.h>
 /* add user code end private includes */
 
 /* exported types -------------------------------------------------------------*/
 /* add user code begin exported types */
+typedef struct key_state_struct
+{
+	uint8_t key_pressed_time;
+	uint16_t key_hold_time;
+	uint8_t released;
+} key_state_struct;
+
+typedef struct ina226_info_struct
+{
+	float Voltage;
+	float Current;
+	float Power;
+} ina226_info_struct;
 
 /* add user code end exported types */
 
 /* exported constants --------------------------------------------------------*/
 /* add user code begin exported constants */
-
+#define KEY_PIN_Pin GPIO_PINS_0
+#define KEY_PIN_GPIO_Port GPIOB
 /* add user code end exported constants */
 
 /* exported macro ------------------------------------------------------------*/
@@ -66,6 +81,7 @@ extern "C" {
   /* nvic config. */
   void wk_nvic_config(void);
 
+	void wk_gpio_config(void);
 /* add user code begin exported functions */
 
 /* add user code end exported functions */

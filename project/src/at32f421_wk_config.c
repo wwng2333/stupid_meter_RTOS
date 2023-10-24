@@ -161,6 +161,22 @@ void wk_nvic_config(void)
   nvic_priority_group_config(NVIC_PRIORITY_GROUP_4);
 }
 
+/**
+  * @brief  init gpio_input/gpio_output/gpio_analog/eventout function.
+  * @param  none
+  * @retval none
+  */
+void wk_gpio_config(void)
+{
+  gpio_init_type gpio_init_struct;
+
+  /* configure the PB0 */
+  gpio_default_para_init(&gpio_init_struct);
+  gpio_init_struct.gpio_mode = GPIO_MODE_INPUT;
+  gpio_init_struct.gpio_pins = GPIO_PINS_0;
+  gpio_init_struct.gpio_pull = GPIO_PULL_UP;
+  gpio_init(GPIOB, &gpio_init_struct);
+}
 /* add user code begin 1 */
 
 /* add user code end 1 */

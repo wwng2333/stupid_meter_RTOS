@@ -18,11 +18,13 @@
 
 #define Read_SDA_Pin gpio_input_data_bit_read(SDA_PORT, SDA_PIN)
 
+//void INA226_Update(ina226_info_struct *ina226_info);
+
 void I2C_Delay(void);
 void INA226_Init(void);
 float INA226_Read_Voltage(void);
 float INA226_Read_Current(void);
-float INA226_Read_Power(void);
+//float INA226_Read_Power(void);
 
 uint16_t I2C_Read_2Byte(uint8_t addr);
 void I2C_Write_2Byte(uint8_t addr, uint16_t dat);

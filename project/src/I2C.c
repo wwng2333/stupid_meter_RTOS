@@ -5,15 +5,31 @@
 
 void I2C_Delay(void)
 {
-//  int i;
-//  for (i = 0; i < 1000; i++)
-//    ;
-	delay_us(10);
+  uint16_t i;
+  for (i = 0; i < 100; i++)
+    ;
+//	delay_us(10);
 }
+
+//void INA226_Update(ina226_info_struct *info)
+//{
+//	info->Voltage = INA226_Read_Voltage();
+//	osDelay(1);
+//	info->Current = INA226_Read_Current();
+//	osDelay(1);
+//	info->Power = info->Voltage * info->Current;
+//}
 
 float INA226_Read_Voltage(void)
 {
-	return 1.25 * (float)I2C_Read_2Byte(0x02) / 1000;
+	float voltage = 0.0f;
+	voltage = 1.25 * (float)I2C_Read_2Byte(0x02) / 1000;	
+	#ifdef __Crazy_DEBUG
+	SEGGER_RTT_SetTerminal(1);
+	SEGGER_RTT_printf(0, "read INA226 0x02=%.2f\r\n", voltage);
+	SEGGER_RTT_SetTerminal(0);
+	#endif
+	return voltage;
 }
 
 float INA226_Read_Current(void)
@@ -29,10 +45,10 @@ float INA226_Read_Current(void)
 	return (float)temp * 0.0002;
 }
 
-float INA226_Read_Power(void)
-{
-	return (float)I2C_Read_2Byte(0x03) * 0.02 * 25;
-}
+//float INA226_Read_Power(void)
+//{
+//	return (float)I2C_Read_2Byte(0x03) * 0.02 * 25;
+//}
 
 void I2C_Soft_Init(void)
 {
