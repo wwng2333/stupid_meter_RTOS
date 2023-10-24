@@ -22,6 +22,7 @@
 
 void I2C_Delay(void);
 void INA226_Init(void);
+void I2C_Soft_Init(void);
 float INA226_Read_Voltage(void);
 float INA226_Read_Current(void);
 //float INA226_Read_Power(void);

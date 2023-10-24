@@ -159,6 +159,8 @@ void wk_periph_clock_config(void)
 void wk_nvic_config(void)
 {
   nvic_priority_group_config(NVIC_PRIORITY_GROUP_4);
+	
+	nvic_irq_enable(DMA1_Channel3_2_IRQn, 1, 0);
 }
 
 /**
@@ -168,6 +170,9 @@ void wk_nvic_config(void)
   */
 void wk_gpio_config(void)
 {
+  /* enable gpiob periph clock */
+  crm_periph_clock_enable(CRM_GPIOB_PERIPH_CLOCK, TRUE);
+	
   gpio_init_type gpio_init_struct;
 
   /* configure the PB0 */
@@ -177,6 +182,86 @@ void wk_gpio_config(void)
   gpio_init_struct.gpio_pull = GPIO_PULL_UP;
   gpio_init(GPIOB, &gpio_init_struct);
 }
+
+/**
+  * @brief  init dma1 channel1 for "adc1"
+  * @param  none
+  * @retval none
+  */
+void wk_dma1_channel1_init(void)
+{
+  /* enable dma1 periph clock */
+  crm_periph_clock_enable(CRM_DMA1_PERIPH_CLOCK, TRUE);
+	
+  dma_init_type dma_init_struct;
+
+  dma_reset(DMA1_CHANNEL1);
+  dma_default_para_init(&dma_init_struct);
+  dma_init_struct.direction = DMA_DIR_PERIPHERAL_TO_MEMORY;
+  dma_init_struct.memory_data_width = DMA_MEMORY_DATA_WIDTH_HALFWORD;
+  dma_init_struct.memory_inc_enable = TRUE;
+  dma_init_struct.peripheral_data_width = DMA_PERIPHERAL_DATA_WIDTH_HALFWORD;
+  dma_init_struct.peripheral_inc_enable = FALSE;
+  dma_init_struct.priority = DMA_PRIORITY_HIGH;
+  dma_init_struct.loop_mode_enable = TRUE;
+  dma_init(DMA1_CHANNEL1, &dma_init_struct);
+}
+
+/**
+  * @brief  init adc1 function.
+  * @param  none
+  * @retval none
+  */
+void wk_adc1_init(void)
+{
+	/* enable adc1 periph clock */
+  crm_periph_clock_enable(CRM_ADC1_PERIPH_CLOCK, TRUE);
+	
+  /* add user code begin adc1_init 0 */
+
+  /* add user code end adc1_init 0 */
+
+  adc_base_config_type adc_base_struct;
+
+  /* add user code begin adc1_init 1 */
+
+  /* add user code end adc1_init 1 */
+
+  /* gpio--------------------------------------------------------------------*/
+  crm_adc_clock_div_set(CRM_ADC_DIV_6);
+
+  adc_tempersensor_vintrv_enable(TRUE);
+
+  /* adc_settings----------------------------------------------------------- */
+  adc_base_default_para_init(&adc_base_struct);
+  adc_base_struct.sequence_mode = TRUE;
+  adc_base_struct.repeat_mode = TRUE;
+  adc_base_struct.data_align = ADC_RIGHT_ALIGNMENT;
+  adc_base_struct.ordinary_channel_length = 2;
+  adc_base_config(ADC1, &adc_base_struct);
+
+  /* adc_ordinary_conversionmode-------------------------------------------- */
+  adc_ordinary_channel_set(ADC1, ADC_CHANNEL_16, 1, ADC_SAMPLETIME_239_5);
+  adc_ordinary_channel_set(ADC1, ADC_CHANNEL_17, 2, ADC_SAMPLETIME_239_5);
+
+  adc_ordinary_conversion_trigger_set(ADC1, ADC12_ORDINARY_TRIG_SOFTWARE, TRUE);
+
+  adc_ordinary_part_mode_enable(ADC1, FALSE);
+
+  adc_dma_mode_enable(ADC1, TRUE);
+  adc_enable(ADC1, TRUE);
+
+  /* adc calibration-------------------------------------------------------- */
+  adc_calibration_init(ADC1);
+  while(adc_calibration_init_status_get(ADC1));
+  adc_calibration_start(ADC1);
+  while(adc_calibration_status_get(ADC1));
+
+  /* add user code begin adc1_init 2 */
+
+  /* add user code end adc1_init 2 */
+}
+
 /* add user code begin 1 */
 
 /* add user code end 1 */

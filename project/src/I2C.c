@@ -1,11 +1,12 @@
 #include "at32f421_wk_config.h"
+#include "cmsis_os2.h"
 #include "I2C.h"
 
 #define __Crazy_DEBUG
 
 void I2C_Delay(void)
 {
-  uint16_t i;
+  uint8_t i;
   for (i = 0; i < 100; i++)
     ;
 //	delay_us(10);

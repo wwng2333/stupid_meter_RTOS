@@ -58,6 +58,13 @@ typedef struct ina226_info_struct
 	float Power;
 } ina226_info_struct;
 
+typedef struct ADC_result_struct
+{
+	uint16_t result[2];
+	float temp;
+	float vcc;
+} ADC_result_struct;
+
 /* add user code end exported types */
 
 /* exported constants --------------------------------------------------------*/
@@ -82,6 +89,8 @@ typedef struct ina226_info_struct
   void wk_nvic_config(void);
 
 	void wk_gpio_config(void);
+	void wk_dma1_channel1_init(void);
+	void wk_adc1_init(void);
 /* add user code begin exported functions */
 
 /* add user code end exported functions */

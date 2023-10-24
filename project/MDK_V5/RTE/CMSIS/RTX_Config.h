@@ -44,7 +44,7 @@
 //   <i> Defines the combined global dynamic memory size.
 //   <i> Default: 32768
 #ifndef OS_DYNAMIC_MEM_SIZE
-#define OS_DYNAMIC_MEM_SIZE         4096
+#define OS_DYNAMIC_MEM_SIZE         3072
 #endif
  
 //   <o>Kernel Tick Frequency [Hz] <1-1000000>
@@ -82,7 +82,7 @@
 //   <q>Object Memory usage counters
 //   <i> Enables object memory usage counters (requires RTX source variant).
 #ifndef OS_OBJ_MEM_USAGE
-#define OS_OBJ_MEM_USAGE            0
+#define OS_OBJ_MEM_USAGE            1
 #endif
  
 // </h>
@@ -100,14 +100,14 @@
 //     <i> Defines maximum number of user threads that can be active at the same time.
 //     <i> Applies to user threads with system provided memory for control blocks.
 #ifndef OS_THREAD_NUM
-#define OS_THREAD_NUM               4
+#define OS_THREAD_NUM               5
 #endif
  
 //     <o>Number of user Threads with default Stack size <0-1000>
 //     <i> Defines maximum number of user threads with default stack size.
 //     <i> Applies to user threads with zero stack size specified.
 #ifndef OS_THREAD_DEF_STACK_NUM
-#define OS_THREAD_DEF_STACK_NUM     1
+#define OS_THREAD_DEF_STACK_NUM     0
 #endif
  
 //     <o>Total Stack size [bytes] for user Threads with user-provided Stack size <0-1073741824:8>
@@ -153,7 +153,7 @@
 //   <i> Initializes thread stack with watermark pattern for analyzing stack usage.
 //   <i> Enabling this option increases significantly the execution time of thread creation.
 #ifndef OS_STACK_WATERMARK
-#define OS_STACK_WATERMARK          0
+#define OS_STACK_WATERMARK          1
 #endif
  
 //   <o>Processor mode for Thread execution
