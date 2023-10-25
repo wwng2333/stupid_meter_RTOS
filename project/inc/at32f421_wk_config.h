@@ -67,7 +67,7 @@ typedef enum menu_state_enum
 	menu_current_chart,
 	menu_power_chart,
 	menu_statistics,
-	//menu_2nd_menu,
+	menu_2nd_menu,
 } menu_state_enum;
 
 typedef struct ADC_result_struct
@@ -109,6 +109,7 @@ void wk_gpio_config(void);
 void wk_dma1_channel1_init(void);
 void wk_adc1_init(void);
 void ADC_timer_cb(void);
+void menu_2nd_display(void);
 /* add user code begin exported functions */
 
 /* add user code end exported functions */

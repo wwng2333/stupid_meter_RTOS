@@ -81,7 +81,6 @@ uint32_t i2c_last_tick;
 char Calc[32] = {0};
 
 bool __SPI_8bit_mode;
-bool __Current_direct = 1;
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
@@ -99,7 +98,7 @@ static const osThreadAttr_t ThreadAttr_app_main =
 static const osThreadAttr_t ThreadAttr_key_scan =
 	{
 		.name = "key_scan",
-		.priority = (osPriority_t)osPriorityHigh,
+		.priority = (osPriority_t)osPriorityRealtime,
 		.stack_size = 256};
 
 static const osThreadAttr_t ThreadAttr_LCD_Update =
@@ -140,7 +139,7 @@ __NO_RETURN void key_scan_thread1(void *arg)
 					if (key_state.key_hold_time < 200)
 					// short press < 200ms
 					{
-						if (menu_state != menu_statistics)
+						if (menu_state != menu_2nd_menu)
 							menu_state++;
 						else
 							menu_state = menu_default;
@@ -218,30 +217,24 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 			LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
 			sprintf(Calc, "%.2fmAh", mAh);
 			LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
-			
+
 			if (mWh < 10000)
 				sprintf(Calc, "%.2fmWh", mWh);
 			else
 				sprintf(Calc, "%.1fmWh", mWh);
 			LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
 
-			if (ina226_info.Direction)
-			{
-				__Current_direct = 1;
-			}
-			
-			if (USE_HORIZONTAL == 2) 
-			{
-				__Current_direct = ~__Current_direct;
-			}
-			
-			if (!__Current_direct)
+			if (USE_HORIZONTAL == 3 && ina226_info.Direction)
 			{
 				LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
+			} 
+			else if(USE_HORIZONTAL == 2 && ina226_info.Direction)
+			{
+				LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
 			}
 			else
 			{
-				LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
+				LCD_ShowString(96, 62, "-------", GBLUE, BLACK, 16, 0);
 			}
 			break;
 
@@ -270,9 +263,35 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 			sprintf(Calc, "%c %.2f %.2f %.2f", 'W', Power_queue.max, Power_queue.avg, Power_queue.min);
 			LCD_ShowString(1, 62, Calc, GBLUE, BLACK, 16, 0);
 			break;
+		
+		case menu_2nd_menu:
+			menu_2nd_display();
+			break;
 		}
 		osEventFlagsClear(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 	}
+}
+
+void menu_2nd_display(void)
+{
+	char infobuf[16];
+	osVersion_t osv;
+	osStatus_t status;
+	status = osKernelGetInfo(&osv, infobuf, sizeof(infobuf));
+
+	LCD_DrawLine(0, 14, 160, 14, GBLUE);
+	sprintf(Calc, "Crazy USB meter by wwng");
+	LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "MCU: AT32F421G8U7 %d", __AT32F421_LIBRARY_VERSION);
+	LCD_ShowString(1, 15, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "INA226 ID: 0x%02x 0x%02x", I2C_Read_2Byte(0xFE), I2C_Read_2Byte(0xFF));
+	LCD_ShowString(1, 27, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "%s kernel %d", infobuf, osv.kernel);
+	LCD_ShowString(1, 39, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "key_scan: %d/%d bytes.", osThreadGetStackSpace(key_scan_ID), osThreadGetStackSize(key_scan_ID));
+	LCD_ShowString(1, 51, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "LCD_Update: %d/%d bytes.", osThreadGetStackSpace(LCD_Update_ID), osThreadGetStackSize(LCD_Update_ID));
+	LCD_ShowString(1, 63, Calc, GBLUE, BLACK, 12, 0);
 }
 
 void lcd_timer_cb(void *param)
