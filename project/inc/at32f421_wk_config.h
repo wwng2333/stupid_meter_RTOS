@@ -110,6 +110,8 @@ void wk_dma1_channel1_init(void);
 void wk_adc1_init(void);
 void ADC_timer_cb(void);
 void menu_2nd_display(void);
+void menu_statistics_display(void);
+void menu_main_display(void);
 /* add user code begin exported functions */
 
 /* add user code end exported functions */

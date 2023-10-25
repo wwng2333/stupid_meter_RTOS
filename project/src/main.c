@@ -186,56 +186,7 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 		switch (menu_state)
 		{
 		case menu_default:
-			LCD_DrawLine(88, 2, 88, 78, WHITE);
-			LCD_DrawLine(89, 2, 89, 78, WHITE);
-			if (ina226_info.Voltage < 10)
-				sprintf(Calc, "%.3fV", ina226_info.Voltage);
-			else
-				sprintf(Calc, "%.2fV", ina226_info.Voltage);
-			LCD_ShowString2416(0, 2, Calc, LIGHTBLUE, BLACK);
-
-			sprintf(Calc, "%.3fA", ina226_info.Current);
-			LCD_ShowString2416(0, 29, Calc, BLUE, BLACK);
-#ifdef __Crazy_DEBUG
-			SEGGER_RTT_printf(0, "%s\r\n", Calc);
-#endif
-
-			if (ina226_info.Power < 10)
-				sprintf(Calc, "%.3fW", ina226_info.Power);
-			else if (ina226_info.Power < 100)
-				sprintf(Calc, "%.2fW", ina226_info.Power);
-			else
-				sprintf(Calc, "%.1fW", ina226_info.Power);
-			LCD_ShowString2416(0, 56, Calc, GBLUE, BLACK);
-#ifdef __Crazy_DEBUG
-			SEGGER_RTT_printf(0, "%s\r\n", Calc);
-#endif
-
-			sprintf(Calc, "MCU:%.1fC", ADC_result.temp);
-			LCD_ShowString(96, 2, Calc, GBLUE, BLACK, 12, 0);
-			sprintf(Calc, "Vcc:%.2fV", ADC_result.vcc);
-			LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
-			sprintf(Calc, "%.2fmAh", mAh);
-			LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
-
-			if (mWh < 10000)
-				sprintf(Calc, "%.2fmWh", mWh);
-			else
-				sprintf(Calc, "%.1fmWh", mWh);
-			LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
-
-			if (USE_HORIZONTAL == 3 && ina226_info.Direction)
-			{
-				LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
-			} 
-			else if(USE_HORIZONTAL == 2 && ina226_info.Direction)
-			{
-				LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
-			}
-			else
-			{
-				LCD_ShowString(96, 62, "-------", GBLUE, BLACK, 16, 0);
-			}
+			menu_main_display();
 			break;
 
 		case menu_voltage_chart:
@@ -251,17 +202,7 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 			break;
 
 		case menu_statistics:
-			LCD_DrawLine(0, 14, 160, 14, GBLUE);
-			sprintf(Calc, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
-			LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
-			sprintf(Calc, "Max  Avg  Min");
-			LCD_ShowString(18, 14, Calc, GBLUE, BLACK, 16, 1);
-			sprintf(Calc, "%c %.2f %.2f %.2f", 'V', Voltage_queue.max, Voltage_queue.avg, Voltage_queue.min);
-			LCD_ShowString(1, 30, Calc, GBLUE, BLACK, 16, 0);
-			sprintf(Calc, "%c %.2f %.2f %.2f", 'A', Current_queue.max, Current_queue.avg, Current_queue.min);
-			LCD_ShowString(1, 46, Calc, GBLUE, BLACK, 16, 0);
-			sprintf(Calc, "%c %.2f %.2f %.2f", 'W', Power_queue.max, Power_queue.avg, Power_queue.min);
-			LCD_ShowString(1, 62, Calc, GBLUE, BLACK, 16, 0);
+			menu_statistics_display();
 			break;
 		
 		case menu_2nd_menu:
@@ -270,6 +211,75 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 		}
 		osEventFlagsClear(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 	}
+}
+
+void menu_main_display(void)
+{
+	LCD_DrawLine(88, 2, 88, 78, WHITE);
+	LCD_DrawLine(89, 2, 89, 78, WHITE);
+	if (ina226_info.Voltage < 10)
+		sprintf(Calc, "%.3fV", ina226_info.Voltage);
+	else
+		sprintf(Calc, "%.2fV", ina226_info.Voltage);
+	LCD_ShowString2416(0, 2, Calc, LIGHTBLUE, BLACK);
+
+	sprintf(Calc, "%.3fA", ina226_info.Current);
+	LCD_ShowString2416(0, 29, Calc, BLUE, BLACK);
+#ifdef __Crazy_DEBUG
+	SEGGER_RTT_printf(0, "%s\r\n", Calc);
+#endif
+
+	if (ina226_info.Power < 10)
+		sprintf(Calc, "%.3fW", ina226_info.Power);
+	else if (ina226_info.Power < 100)
+		sprintf(Calc, "%.2fW", ina226_info.Power);
+	else
+		sprintf(Calc, "%.1fW", ina226_info.Power);
+	LCD_ShowString2416(0, 56, Calc, GBLUE, BLACK);
+#ifdef __Crazy_DEBUG
+	SEGGER_RTT_printf(0, "%s\r\n", Calc);
+#endif
+
+	sprintf(Calc, "MCU:%.1fC", ADC_result.temp);
+	LCD_ShowString(96, 2, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "Vcc:%.2fV", ADC_result.vcc);
+	LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "%.2fmAh", mAh);
+	LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
+
+	if (mWh < 10000)
+		sprintf(Calc, "%.2fmWh", mWh);
+	else
+		sprintf(Calc, "%.1fmWh", mWh);
+	LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
+
+	if (USE_HORIZONTAL == 3 && ina226_info.Direction)
+	{
+		LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
+	} 
+	else if(USE_HORIZONTAL == 2 && ina226_info.Direction)
+	{
+		LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
+	}
+	else
+	{
+		LCD_ShowString(96, 62, "-------", GBLUE, BLACK, 16, 0);
+	}
+}
+
+void menu_statistics_display(void)
+{
+	LCD_DrawLine(0, 14, 160, 14, GBLUE);
+	sprintf(Calc, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
+	LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(Calc, "Max A. M. %.1fs", (float)osKernelGetTickCount()/1000);
+	LCD_ShowString(1, 15, Calc, GBLUE, BLACK, 16, 0);
+	sprintf(Calc, "%c %.2f %.2f %.2f", 'V', Voltage_queue.max, Voltage_queue.avg, Voltage_queue.min);
+	LCD_ShowString(1, 30, Calc, GBLUE, BLACK, 16, 0);
+	sprintf(Calc, "%c %.2f %.2f %.2f", 'A', Current_queue.max, Current_queue.avg, Current_queue.min);
+	LCD_ShowString(1, 46, Calc, GBLUE, BLACK, 16, 0);
+	sprintf(Calc, "%c %.2f %.2f %.2f", 'W', Power_queue.max, Power_queue.avg, Power_queue.min);
+	LCD_ShowString(1, 62, Calc, GBLUE, BLACK, 16, 0);
 }
 
 void menu_2nd_display(void)
