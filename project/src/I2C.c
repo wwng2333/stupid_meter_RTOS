@@ -3,15 +3,13 @@
 #include "I2C.h"
 
 //#define __Crazy_DEBUG
-
 void I2C_Delay(void)
 {
-  uint8_t i;
+   __IO uint8_t i;
   for (i = 0; i < 100; i++)
     ;
 //	delay_us(10);
 }
-
 //void INA226_Update(ina226_info_struct *info)
 //{
 //	info->Voltage = INA226_Read_Voltage();

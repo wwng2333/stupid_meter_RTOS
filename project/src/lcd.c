@@ -3,7 +3,9 @@
 #include "Queue.h"
 #include "lcd_init.h"
 #include "lcdfont.h"
+#include <stdbool.h>
 
+extern bool __SPI_8bit_mode;
 extern char Calc[32];
 extern ina226_info_struct ina226_info;
 extern ADC_result_struct ADC_result;
@@ -57,17 +59,23 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 	color1[0]=color;
 	num=(xend-xsta)*(yend-ysta);
 	LCD_Address_Set(xsta,ysta,xend-1,yend-1);//ÉèÖÃÏÔÊ¾·¶Î§
-	spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
-	spi_i2s_dma_transmitter_enable(SPI1, TRUE);
-	spi_enable(SPI1, TRUE);
+	if(__SPI_8bit_mode)
+	{
+		__SPI_8bit_mode = 0;
+		spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
+		spi_i2s_dma_transmitter_enable(SPI1, TRUE);
+		LCD_dma1_channel3_init_halfword();
+	}
+	//spi_enable(SPI1, TRUE);
 	LCD_CS_Clr();
-	LCD_dma1_channel3_init();
   wk_dma_channel_config(DMA1_CHANNEL3, (uint32_t)&SPI1->dt, (uint32_t)color1, num);
   dma_channel_enable(DMA1_CHANNEL3, TRUE);
 	while (spi_i2s_flag_get(SPI1, SPI_I2S_BF_FLAG));
+#ifndef __USE_SPI_DMA
 	spi_frame_bit_num_set(SPI1, SPI_FRAME_8BIT);
 	spi_i2s_dma_transmitter_enable(SPI1, FALSE);
-	spi_enable(SPI1, TRUE);
+#endif
+	//spi_enable(SPI1, TRUE);
 }
 
 /******************************************************************************

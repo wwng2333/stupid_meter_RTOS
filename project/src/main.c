@@ -73,10 +73,11 @@ float mAh = 0.0f;
 float mWh = 0.0f;
 
 __IO uint8_t USE_HORIZONTAL = 3;
-uint8_t Status = 0;
+uint8_t Status = 99;
 uint8_t SavedPoint[SIZE] = {0};
 char Calc[32] = {0};
 
+bool __SPI_8bit_mode = 1;
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
@@ -89,7 +90,7 @@ static const osThreadAttr_t ThreadAttr_app_main =
 	{
 		.name = "app_main",
 		.priority = (osPriority_t)osPriorityNormal,
-		.stack_size = 384};
+		.stack_size = 512};
 
 static const osThreadAttr_t ThreadAttr_key_scan =
 	{
@@ -107,7 +108,7 @@ static const osThreadAttr_t ThreadAttr_LCD_Update =
 	{
 		.name = "LCD_Update",
 		.priority = (osPriority_t)osPriorityNormal2,
-		.stack_size = 1024};
+		.stack_size = 512};
 
 static const osThreadAttr_t ThreadAttr_ADC_Update =
 	{
@@ -141,16 +142,16 @@ __NO_RETURN void key_scan_thread1(void *arg)
 					osDelay(50);
 				}
 				key_state.released = 1;
-				if (key_state.key_pressed_time > 0)
+				if (key_state.key_pressed_time > 0) // Key is pressed
 				{
-					if (key_state.key_hold_time < 200)
+					if (key_state.key_hold_time < 200) // short press < 200ms
 					{
 						if (Status < 4)
 							Status++;
 						else
 							Status = 0;
 					}
-					else
+					else // long press > 200ms
 					{
 						if (USE_HORIZONTAL == 3)
 							USE_HORIZONTAL = 2;
@@ -174,9 +175,12 @@ __NO_RETURN void i2c_read_thread1(void *arg)
 {
 	for (;;)
 	{
+		osKernelLock();
 		ina226_info.Voltage = INA226_Read_Voltage();
 		ina226_info.Current = INA226_Read_Current();
 		ina226_info.Power = ina226_info.Voltage * ina226_info.Current;
+		osKernelUnlock();
+		osDelay(50);
 		enqueue(&Voltage_queue, ina226_info.Voltage);
 		enqueue(&Current_queue, ina226_info.Current);
 		enqueue(&Power_queue, ina226_info.Power);
@@ -192,6 +196,11 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 	uint32_t tick = 0;
 	for (;;)
 	{
+		if(Status == 99)
+		{
+			LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
+			Status = 0;
+		}
 		osEventFlagsWait(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG, osFlagsWaitAny, osWaitForever);
 		switch (Status)
 		{
@@ -288,7 +297,6 @@ void app_main(void *arg)
 {
 	INA226_Init();
 	LCD_Init();
-	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
 	LCD_Update_flagID = osEventFlagsNew(&FlagsAttr_LCD_Update_event);
 
 	key_scan_ID = osThreadNew(key_scan_thread1, NULL, &ThreadAttr_key_scan);
@@ -316,7 +324,7 @@ int main(void)
 	/* system clock config. */
 	wk_system_clock_config();
 	// delay_init();
-	EventRecorderInitialize(EventRecordAll, 1U);
+	EventRecorderInitialize(EventRecordAll, 10U);
 	EventRecorderStart();
 
 	/* nvic config. */
@@ -335,12 +343,12 @@ int main(void)
 
 	/* config LCD screen. */
 	LCD_SPI1_init();
+	LCD_dma1_channel3_init_byte();
 
 	/* add user code begin 2 */
 	osKernelInitialize();
 	app_main_ID = osThreadNew(app_main, NULL, &ThreadAttr_app_main);
-	while (osKernelGetState() != osKernelReady)
-		;
+	while (osKernelGetState() != osKernelReady) {};
 	osKernelStart();
 	/* add user code end 2 */
 

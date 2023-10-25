@@ -74,6 +74,8 @@ typedef struct ADC_result_struct
 
 #define LCD_KEY_UPDATE_FLAG (1U << 0)
 #define LCD_MAIN_UPDATE_FLAG (1U << 1)
+
+#define __USE_SPI_DMA
 /* add user code end exported constants */
 
 /* exported macro ------------------------------------------------------------*/

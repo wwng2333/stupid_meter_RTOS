@@ -3,13 +3,41 @@
 #include "lcd.h"
 #include "delay.h"
 #include "cmsis_os2.h"
+#include <stdbool.h>
+
+extern bool __SPI_8bit_mode;
 
 /**
   * @brief  init dma1 channel3 for "spi1_tx"
   * @param  none
   * @retval none
   */
-void LCD_dma1_channel3_init(void)
+void LCD_dma1_channel3_init_byte(void)
+{
+	/* enable dma1 periph clock */
+  crm_periph_clock_enable(CRM_DMA1_PERIPH_CLOCK, TRUE);
+	
+  dma_init_type dma_init_struct;
+
+  dma_reset(DMA1_CHANNEL3);
+  dma_default_para_init(&dma_init_struct);
+  dma_init_struct.direction = DMA_DIR_MEMORY_TO_PERIPHERAL;
+  dma_init_struct.memory_data_width = DMA_MEMORY_DATA_WIDTH_BYTE;
+  dma_init_struct.memory_inc_enable = TRUE;
+  dma_init_struct.peripheral_data_width = DMA_PERIPHERAL_DATA_WIDTH_BYTE;
+  dma_init_struct.peripheral_inc_enable = FALSE;
+  dma_init_struct.priority = DMA_PRIORITY_HIGH;
+  dma_init_struct.loop_mode_enable = FALSE;
+  dma_init(DMA1_CHANNEL3, &dma_init_struct);
+	dma_interrupt_enable(DMA1_CHANNEL3, DMA_FDT_INT, TRUE);
+}
+
+/**
+  * @brief  init dma1 channel3 for "spi1_tx"
+  * @param  none
+  * @retval none
+  */
+void LCD_dma1_channel3_init_halfword(void)
 {
 	/* enable dma1 periph clock */
   crm_periph_clock_enable(CRM_DMA1_PERIPH_CLOCK, TRUE);
@@ -129,29 +157,11 @@ void LCD_Writ_Bus(u8 dat)
 {	
 	LCD_CS_Clr();
 	spi_i2s_data_transmit(SPI1, dat);
-	while (spi_i2s_flag_get(SPI1, SPI_I2S_BF_FLAG))
-		;
-	#ifdef __Crazy_DEBUG
-	//SEGGER_RTT_printf(0, "SPI1 sent 0x%x\r\n", dat);
-	#endif
+	while (spi_i2s_flag_get(SPI1, SPI_I2S_BF_FLAG) == SET) {};
+#ifdef __Crazy_DEBUG
+	SEGGER_RTT_printf(0, "SPI1 sent 0x%x\r\n", dat);
+#endif
   LCD_CS_Set();	
-	//delay_us(10);
-//	u8 i;
-	
-//	for(i=0;i<8;i++)
-//	{			  
-//		LCD_SCLK_Clr();
-//		if(dat&0x80)
-//		{
-//		   LCD_MOSI_Set();
-//		}
-//		else
-//		{
-//		   LCD_MOSI_Clr();
-//		}
-//		LCD_SCLK_Set();
-//		dat<<=1;
-//	}	
 }
 
 
@@ -171,11 +181,30 @@ void LCD_WR_DATA8(u8 dat)
       入口数据：dat 写入的数据
       返回值：  无
 ******************************************************************************/
-void LCD_WR_DATA(u16 dat)
+void LCD_WR_DATA(uint16_t dat)
 {
-	LCD_Writ_Bus(dat>>8);
-	LCD_Writ_Bus(dat);
+	uint8_t buf[2] = {0};
+	buf[0]= dat>>8;
+	buf[1]= dat;
+#ifdef __USE_SPI_DMA
+	if(!__SPI_8bit_mode)
+	{
+		__SPI_8bit_mode = 1;
+		spi_frame_bit_num_set(SPI1, SPI_FRAME_8BIT);
+		//spi_i2s_dma_transmitter_enable(SPI1, TRUE);
+		spi_i2s_dma_transmitter_enable(SPI1, TRUE);
+		LCD_dma1_channel3_init_byte();
+	}
+	wk_dma_channel_config(DMA1_CHANNEL3, (uint32_t)&SPI1->dt, (uint32_t)buf, 2);
+	LCD_CS_Clr();
+	dma_channel_enable(DMA1_CHANNEL3, TRUE);
+	while (spi_i2s_flag_get(SPI1, SPI_I2S_BF_FLAG) == SET) {};
+#else
+	LCD_Writ_Bus(buf[0]);
+	LCD_Writ_Bus(buf[1]);
+#endif
 }
+
 
 
 /******************************************************************************

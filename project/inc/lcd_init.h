@@ -36,8 +36,10 @@ extern __IO uint8_t USE_HORIZONTAL;  //ÉèÖÃºáÆÁ»òÕßÊúÆÁÏÔÊ¾ 0»ò1ÎªÊúÆÁ 2»ò3ÎªºáÆ
 #define LCD_BLK_Clr()  gpio_bits_reset(GPIOA, GPIO_PINS_1) //PA1
 #define LCD_BLK_Set()  gpio_bits_set(GPIOA, GPIO_PINS_1)
 
+
+void LCD_dma1_channel3_init_byte(void);
+void LCD_dma1_channel3_init_halfword(void);
 void LCD_SPI1_init(void);
-void LCD_dma1_channel3_init(void);
 void wk_dma_channel_config(dma_channel_type* dmax_channely, uint32_t peripheral_base_addr, uint32_t memory_base_addr, uint16_t buffer_size);
 
 void LCD_Writ_Bus(u8 dat);//Ä£ÄâSPIÊ±Ğò
