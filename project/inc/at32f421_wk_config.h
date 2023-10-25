@@ -40,6 +40,7 @@ extern "C" {
 #include "SEGGER_RTT.h"
 #include "delay.h"
 #include <stdio.h>
+#include <stdbool.h>
 /* add user code end private includes */
 
 /* exported types -------------------------------------------------------------*/
@@ -56,6 +57,7 @@ typedef struct ina226_info_struct
 	float Voltage;
 	float Current;
 	float Power;
+	bool Direction; //if Direction=1, current is negative.
 } ina226_info_struct;
 
 typedef enum menu_state_enum 

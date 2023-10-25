@@ -2,6 +2,8 @@
 #include "cmsis_os2.h"
 #include "I2C.h"
 
+extern ina226_info_struct ina226_info;
+
 //#define __Crazy_DEBUG
 void I2C_Delay(void)
 {
@@ -10,38 +12,47 @@ void I2C_Delay(void)
     ;
 //	delay_us(10);
 }
-//void INA226_Update(ina226_info_struct *info)
-//{
-//	info->Voltage = INA226_Read_Voltage();
-//	osDelay(1);
-//	info->Current = INA226_Read_Current();
-//	osDelay(1);
-//	info->Power = info->Voltage * info->Current;
-//}
 
-float INA226_Read_Voltage(void)
+void INA226_Update(void)
 {
-	float voltage = 0.0f;
-	voltage = 1.25 * (float)I2C_Read_2Byte(0x02) / 1000;	
-	#ifdef __Crazy_DEBUG
-	SEGGER_RTT_SetTerminal(1);
-	SEGGER_RTT_printf(0, "read INA226 0x02=%.2f\r\n", voltage);
-	SEGGER_RTT_SetTerminal(0);
-	#endif
-	return voltage;
+	INA226_Read_Voltage();
+	osDelay(1);
+	INA226_Read_Current();
+	osDelay(1);
+	ina226_info.Power = ina226_info.Voltage * ina226_info.Current;
 }
 
-float INA226_Read_Current(void)
+void INA226_Read_Voltage(void)
+{
+	uint16_t temp = 0;
+	temp = I2C_Read_2Byte(0x02);
+	ina226_info.Voltage = 1.25 * (float)I2C_Read_2Byte(0x02) / 1000;
+	#ifdef __Crazy_DEBUG
+	SEGGER_RTT_SetTerminal(1);
+	SEGGER_RTT_printf(0, "read INA226 0x02=%d\r\n", temp);
+	SEGGER_RTT_SetTerminal(0);
+	#endif
+}
+
+void INA226_Read_Current(void)
 {
 	uint16_t temp = 0;
 	temp = I2C_Read_2Byte(0x04);
-	if(temp&0x8000) temp = ~(temp - 1);
+	if(temp&0x8000) 
+	{
+		temp = ~(temp - 1);
+		ina226_info.Direction = 1;
+	}
+	else
+	{
+		ina226_info.Direction = 0;
+	}
+	ina226_info.Current = (float)temp * 0.0002;
 	#ifdef __Crazy_DEBUG
 	SEGGER_RTT_SetTerminal(1);
 	SEGGER_RTT_printf(0, "read INA226 0x04=%d\r\n", temp);
 	SEGGER_RTT_SetTerminal(0);
 	#endif
-	return (float)temp * 0.0002;
 }
 
 //float INA226_Read_Power(void)

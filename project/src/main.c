@@ -46,7 +46,7 @@
 
 /* private define ------------------------------------------------------------*/
 /* add user code begin private define */
-// #define __ENABLE_EventRecorder
+#define __ENABLE_EventRecorder
 /* add user code end private define */
 
 /* private macro -------------------------------------------------------------*/
@@ -62,7 +62,7 @@ osTimerId_t timer0;
 osEventFlagsId_t LCD_Update_flagID;
 
 key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .released = 1};
-ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f};
+ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f, .Direction = 0};
 ADC_result_struct ADC_result = {.result = {0}, .temp = 0.0f, .vcc = 0.0f};
 menu_state_enum menu_state = 0;
 
@@ -72,13 +72,16 @@ struct Queue Power_queue = {.front = 0, .rear = 0};
 
 float mAh = 0.0f;
 float mWh = 0.0f;
+float time_past = 0.0f;
 
 __IO uint8_t USE_HORIZONTAL = 3;
 uint8_t Status = 0;
 uint8_t SavedPoint[SIZE] = {0};
+uint32_t i2c_last_tick;
 char Calc[32] = {0};
 
 bool __SPI_8bit_mode;
+bool __Current_direct = 1;
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
@@ -166,20 +169,21 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 {
 	spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
 	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
+	i2c_last_tick = osKernelGetTickCount();
 	for (;;)
 	{
 		osEventFlagsWait(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG, osFlagsWaitAny, osWaitForever);
 		osKernelLock();
-		ina226_info.Voltage = INA226_Read_Voltage();
-		ina226_info.Current = INA226_Read_Current();
-		ina226_info.Power = ina226_info.Voltage * ina226_info.Current;
+		INA226_Update();
 		osKernelUnlock();
+		time_past = (float)(osKernelGetTickCount() - i2c_last_tick) / 3600;
+		i2c_last_tick = osKernelGetTickCount();
 		osDelay(50);
 		enqueue(&Voltage_queue, ina226_info.Voltage);
 		enqueue(&Current_queue, ina226_info.Current);
 		enqueue(&Power_queue, ina226_info.Power);
-		mAh += 0.5 * ina226_info.Current / 3.6;
-		mWh += 0.5 * ina226_info.Power / 3.6;
+		mAh += time_past * ina226_info.Current;
+		mWh += time_past * ina226_info.Power;
 		switch (menu_state)
 		{
 		case menu_default:
@@ -214,15 +218,31 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 			LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
 			sprintf(Calc, "%.2fmAh", mAh);
 			LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
+			
 			if (mWh < 10000)
 				sprintf(Calc, "%.2fmWh", mWh);
 			else
 				sprintf(Calc, "%.1fmWh", mWh);
 			LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
-			if (USE_HORIZONTAL == 3)
+
+			if (ina226_info.Direction)
+			{
+				__Current_direct = 1;
+			}
+			
+			if (USE_HORIZONTAL == 2) 
+			{
+				__Current_direct = ~__Current_direct;
+			}
+			
+			if (!__Current_direct)
+			{
 				LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
+			}
 			else
+			{
 				LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
+			}
 			break;
 
 		case menu_voltage_chart:
