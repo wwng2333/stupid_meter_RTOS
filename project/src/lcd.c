@@ -53,10 +53,8 @@ void LCD_ChartPrint(char flag, char unit, struct Queue* queue)
 ******************************************************************************/
 void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 {        
-	//u16 i,j;   
-	__IO u16 color1[1];
-	u16 num;
-	color1[0]=color;
+	uint16_t num, _color[1];
+	_color[0] = color;
 	num=(xend-xsta)*(yend-ysta);
 	LCD_Address_Set(xsta,ysta,xend-1,yend-1);//ÉèÖÃÏÔÊ¾·¶Î§
 	if(__SPI_8bit_mode)
@@ -68,7 +66,7 @@ void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color)
 	}
 	//spi_enable(SPI1, TRUE);
 	LCD_CS_Clr();
-  wk_dma_channel_config(DMA1_CHANNEL3, (uint32_t)&SPI1->dt, (uint32_t)color1, num);
+  wk_dma_channel_config(DMA1_CHANNEL3, (uint32_t)&SPI1->dt, (uint32_t)_color, num);
   dma_channel_enable(DMA1_CHANNEL3, TRUE);
 	while (spi_i2s_flag_get(SPI1, SPI_I2S_BF_FLAG));
 #ifndef __USE_SPI_DMA

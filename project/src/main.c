@@ -73,7 +73,7 @@ float mAh = 0.0f;
 float mWh = 0.0f;
 
 __IO uint8_t USE_HORIZONTAL = 3;
-uint8_t Status = 99;
+uint8_t Status = 0;
 uint8_t SavedPoint[SIZE] = {0};
 char Calc[32] = {0};
 
@@ -192,15 +192,10 @@ __NO_RETURN void i2c_read_thread1(void *arg)
 
 __NO_RETURN void LCD_Update_thread1(void *arg)
 {
-	bool __Refresh_NOW = 0;
-	uint32_t tick = 0;
+	spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
+	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
 	for (;;)
 	{
-		if(Status == 99)
-		{
-			LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
-			Status = 0;
-		}
 		osEventFlagsWait(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG, osFlagsWaitAny, osWaitForever);
 		switch (Status)
 		{
@@ -297,6 +292,9 @@ void app_main(void *arg)
 {
 	INA226_Init();
 	LCD_Init();
+	__SPI_8bit_mode = 0;
+	spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
+	LCD_dma1_channel3_init_halfword();
 	LCD_Update_flagID = osEventFlagsNew(&FlagsAttr_LCD_Update_event);
 
 	key_scan_ID = osThreadNew(key_scan_thread1, NULL, &ThreadAttr_key_scan);
@@ -343,7 +341,6 @@ int main(void)
 
 	/* config LCD screen. */
 	LCD_SPI1_init();
-	LCD_dma1_channel3_init_byte();
 
 	/* add user code begin 2 */
 	osKernelInitialize();
