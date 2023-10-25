@@ -84,18 +84,19 @@ typedef struct ADC_result_struct
 /* add user code end exported macro */
 
 /* exported functions ------------------------------------------------------- */
-  /* system clock config. */
-  void wk_system_clock_config(void);
+/* system clock config. */
+void wk_system_clock_config(void);
 
-  /* config periph clock. */
-  void wk_periph_clock_config(void);
+/* config periph clock. */
+void wk_periph_clock_config(void);
 
-  /* nvic config. */
-  void wk_nvic_config(void);
+/* nvic config. */
+void wk_nvic_config(void);
 
-	void wk_gpio_config(void);
-	void wk_dma1_channel1_init(void);
-	void wk_adc1_init(void);
+void wk_gpio_config(void);
+void wk_dma1_channel1_init(void);
+void wk_adc1_init(void);
+void ADC_timer_cb(void);
 /* add user code begin exported functions */
 
 /* add user code end exported functions */

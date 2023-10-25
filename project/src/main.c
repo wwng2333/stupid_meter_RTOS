@@ -46,7 +46,7 @@
 
 /* private define ------------------------------------------------------------*/
 /* add user code begin private define */
-
+//#define __ENABLE_EventRecorder
 /* add user code end private define */
 
 /* private macro -------------------------------------------------------------*/
@@ -57,7 +57,7 @@
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
 
-osThreadId_t key_scan_ID, app_main_ID, i2c_read_ID, LCD_Update_ID, ADC_Update_ID;
+osThreadId_t key_scan_ID, app_main_ID, LCD_Update_ID;
 osTimerId_t timer0;
 osEventFlagsId_t LCD_Update_flagID;
 
@@ -77,7 +77,7 @@ uint8_t Status = 0;
 uint8_t SavedPoint[SIZE] = {0};
 char Calc[32] = {0};
 
-bool __SPI_8bit_mode = 1;
+bool __SPI_8bit_mode;
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
@@ -98,23 +98,11 @@ static const osThreadAttr_t ThreadAttr_key_scan =
 		.priority = (osPriority_t)osPriorityHigh,
 		.stack_size = 256};
 
-static const osThreadAttr_t ThreadAttr_i2c_read =
-	{
-		.name = "i2c_read",
-		.priority = (osPriority_t)osPriorityNormal3,
-		.stack_size = 256};
-
 static const osThreadAttr_t ThreadAttr_LCD_Update =
 	{
 		.name = "LCD_Update",
 		.priority = (osPriority_t)osPriorityNormal2,
 		.stack_size = 512};
-
-static const osThreadAttr_t ThreadAttr_ADC_Update =
-	{
-		.name = "ADC_Update",
-		.priority = (osPriority_t)osPriorityNormal4,
-		.stack_size = 256};
 
 static const osEventFlagsAttr_t FlagsAttr_LCD_Update_event =
 	{
@@ -142,16 +130,19 @@ __NO_RETURN void key_scan_thread1(void *arg)
 					osDelay(50);
 				}
 				key_state.released = 1;
-				if (key_state.key_pressed_time > 0) // Key is pressed
+				if (key_state.key_pressed_time > 0)
+				// Key is pressed
 				{
-					if (key_state.key_hold_time < 200) // short press < 200ms
+					if (key_state.key_hold_time < 200)
+					// short press < 200ms
 					{
 						if (Status < 4)
 							Status++;
 						else
 							Status = 0;
 					}
-					else // long press > 200ms
+					else 
+					// long press > 200ms
 					{
 						if (USE_HORIZONTAL == 3)
 							USE_HORIZONTAL = 2;
@@ -171,10 +162,13 @@ __NO_RETURN void key_scan_thread1(void *arg)
 	}
 }
 
-__NO_RETURN void i2c_read_thread1(void *arg)
+__NO_RETURN void LCD_Update_thread1(void *arg)
 {
+	spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
+	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
 	for (;;)
 	{
+		osEventFlagsWait(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG, osFlagsWaitAny, osWaitForever);
 		osKernelLock();
 		ina226_info.Voltage = INA226_Read_Voltage();
 		ina226_info.Current = INA226_Read_Current();
@@ -186,17 +180,6 @@ __NO_RETURN void i2c_read_thread1(void *arg)
 		enqueue(&Power_queue, ina226_info.Power);
 		mAh += 0.5 * ina226_info.Current / 3.6;
 		mWh += 0.5 * ina226_info.Power / 3.6;
-		osDelay(500);
-	}
-}
-
-__NO_RETURN void LCD_Update_thread1(void *arg)
-{
-	spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
-	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
-	for (;;)
-	{
-		osEventFlagsWait(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG, osFlagsWaitAny, osWaitForever);
 		switch (Status)
 		{
 		case 0:
@@ -272,20 +255,17 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 	}
 }
 
-__NO_RETURN void ADC_Update_thread1(void *arg)
-{
-	for (;;)
-	{
-		adc_ordinary_software_trigger_enable(ADC1, TRUE);
-		ADC_result.vcc = ((float)1.2 * 4095) / ADC_result.result[1];
-		ADC_result.temp = ((1.26) - (float)ADC_result.result[0] * ADC_result.vcc / 4096) / (-0.00423) + 25;
-		osDelay(500);
-	}
-}
-
 void lcd_timer_cb(void *param)
 {
+	ADC_timer_cb();
 	osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
+}
+
+void ADC_timer_cb(void)
+{
+	adc_ordinary_software_trigger_enable(ADC1, TRUE);
+	ADC_result.vcc = ((float)1.2 * 4095) / ADC_result.result[1];
+	ADC_result.temp = ((1.26) - (float)ADC_result.result[0] * ADC_result.vcc / 4096) / (-0.00423) + 25;
 }
 
 void app_main(void *arg)
@@ -293,13 +273,9 @@ void app_main(void *arg)
 	INA226_Init();
 	LCD_Init();
 	__SPI_8bit_mode = 0;
-	spi_frame_bit_num_set(SPI1, SPI_FRAME_16BIT);
-	LCD_dma1_channel3_init_halfword();
 	LCD_Update_flagID = osEventFlagsNew(&FlagsAttr_LCD_Update_event);
 
 	key_scan_ID = osThreadNew(key_scan_thread1, NULL, &ThreadAttr_key_scan);
-	i2c_read_ID = osThreadNew(i2c_read_thread1, NULL, &ThreadAttr_i2c_read);
-	ADC_Update_ID = osThreadNew(ADC_Update_thread1, NULL, &ThreadAttr_ADC_Update);
 	LCD_Update_ID = osThreadNew(LCD_Update_thread1, NULL, &ThreadAttr_LCD_Update);
 
 	timer0 = osTimerNew(&lcd_timer_cb, osTimerPeriodic, (void *)0, &timerAttr_lcd_cb);
@@ -322,9 +298,10 @@ int main(void)
 	/* system clock config. */
 	wk_system_clock_config();
 	// delay_init();
+#ifdef __ENABLE_EventRecorder
 	EventRecorderInitialize(EventRecordAll, 10U);
 	EventRecorderStart();
-
+#endif
 	/* nvic config. */
 	wk_nvic_config();
 	wk_gpio_config();
@@ -334,6 +311,7 @@ int main(void)
 	wk_adc1_init();
 	wk_dma_channel_config(DMA1_CHANNEL1, (uint32_t)&ADC1->odt, (uint32_t)ADC_result.result, 2);
 	dma_channel_enable(DMA1_CHANNEL1, TRUE);
+	adc_ordinary_software_trigger_enable(ADC1, TRUE);
 
 	/* config periph clock. */
 	wk_periph_clock_config();
