@@ -46,7 +46,7 @@
 
 /* private define ------------------------------------------------------------*/
 /* add user code begin private define */
-//#define __ENABLE_EventRecorder
+// #define __ENABLE_EventRecorder
 /* add user code end private define */
 
 /* private macro -------------------------------------------------------------*/
@@ -64,6 +64,7 @@ osEventFlagsId_t LCD_Update_flagID;
 key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .released = 1};
 ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f};
 ADC_result_struct ADC_result = {.result = {0}, .temp = 0.0f, .vcc = 0.0f};
+menu_state_enum menu_state = 0;
 
 struct Queue Voltage_queue = {.front = 0, .rear = 0};
 struct Queue Current_queue = {.front = 0, .rear = 0};
@@ -101,8 +102,8 @@ static const osThreadAttr_t ThreadAttr_key_scan =
 static const osThreadAttr_t ThreadAttr_LCD_Update =
 	{
 		.name = "LCD_Update",
-		.priority = (osPriority_t)osPriorityNormal2,
-		.stack_size = 512};
+		.priority = (osPriority_t)osPriorityNormal,
+		.stack_size = 768};
 
 static const osEventFlagsAttr_t FlagsAttr_LCD_Update_event =
 	{
@@ -136,12 +137,12 @@ __NO_RETURN void key_scan_thread1(void *arg)
 					if (key_state.key_hold_time < 200)
 					// short press < 200ms
 					{
-						if (Status < 4)
-							Status++;
+						if (menu_state != menu_statistics)
+							menu_state++;
 						else
-							Status = 0;
+							menu_state = menu_default;
 					}
-					else 
+					else
 					// long press > 200ms
 					{
 						if (USE_HORIZONTAL == 3)
@@ -151,7 +152,6 @@ __NO_RETURN void key_scan_thread1(void *arg)
 						LCD_Init_Swap();
 					}
 					LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
-					osDelay(10);
 					osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 					key_state.key_pressed_time = 0;
 					key_state.key_hold_time = 0;
@@ -180,9 +180,9 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 		enqueue(&Power_queue, ina226_info.Power);
 		mAh += 0.5 * ina226_info.Current / 3.6;
 		mWh += 0.5 * ina226_info.Power / 3.6;
-		switch (Status)
+		switch (menu_state)
 		{
-		case 0:
+		case menu_default:
 			LCD_DrawLine(88, 2, 88, 78, WHITE);
 			LCD_DrawLine(89, 2, 89, 78, WHITE);
 			if (ina226_info.Voltage < 10)
@@ -225,19 +225,19 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 				LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
 			break;
 
-		case 1:
+		case menu_voltage_chart:
 			LCD_ChartPrint('V', 'V', &Voltage_queue);
 			break;
 
-		case 2:
+		case menu_current_chart:
 			LCD_ChartPrint('A', 'A', &Current_queue);
 			break;
 
-		case 3:
+		case menu_power_chart:
 			LCD_ChartPrint('P', 'W', &Power_queue);
 			break;
 
-		case 4:
+		case menu_statistics:
 			LCD_DrawLine(0, 14, 160, 14, GBLUE);
 			sprintf(Calc, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
 			LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
@@ -323,7 +323,9 @@ int main(void)
 	/* add user code begin 2 */
 	osKernelInitialize();
 	app_main_ID = osThreadNew(app_main, NULL, &ThreadAttr_app_main);
-	while (osKernelGetState() != osKernelReady) {};
+	while (osKernelGetState() != osKernelReady)
+	{
+	};
 	osKernelStart();
 	/* add user code end 2 */
 

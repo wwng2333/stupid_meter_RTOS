@@ -58,6 +58,16 @@ typedef struct ina226_info_struct
 	float Power;
 } ina226_info_struct;
 
+typedef enum menu_state_enum 
+{
+	menu_default = 0,
+	menu_voltage_chart,
+	menu_current_chart,
+	menu_power_chart,
+	menu_statistics,
+	//menu_2nd_menu,
+} menu_state_enum;
+
 typedef struct ADC_result_struct
 {
 	uint16_t result[2];
