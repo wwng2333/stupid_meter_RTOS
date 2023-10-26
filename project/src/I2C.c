@@ -9,8 +9,9 @@ void I2C_Delay(void)
 {
    __IO uint8_t i;
   for (i = 0; i < 100; i++)
-    ;
-//	delay_us(10);
+	{
+		__asm volatile("");
+	}
 }
 
 void INA226_Update(void)

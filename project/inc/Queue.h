@@ -4,7 +4,7 @@
 #include "at32f421_wk_config.h"
 
 #define SIZE 130
-
+	
 struct Queue {
 	float arr[SIZE];
 	int front, rear;
