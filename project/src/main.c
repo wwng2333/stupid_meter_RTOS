@@ -22,6 +22,7 @@
  *
  **************************************************************************
  */
+#define __ENABLE_EventRecorder
 /* add user code end Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -29,7 +30,9 @@
 #include "I2C.h"
 #include "cmsis_os2.h"
 #include "RTE_Components.h"
+#ifdef __ENABLE_EventRecorder
 #include "EventRecorder.h"
+#endif
 #include "Queue.h"
 #include "lcd.h"
 #include "lcd_init.h"
@@ -46,7 +49,6 @@
 
 /* private define ------------------------------------------------------------*/
 /* add user code begin private define */
-#define __ENABLE_EventRecorder
 /* add user code end private define */
 
 /* private macro -------------------------------------------------------------*/
@@ -64,7 +66,7 @@ osEventFlagsId_t LCD_Update_flagID;
 key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .released = 1};
 ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f, .Direction = 0};
 ADC_result_struct ADC_result = {.result = {0}, .temp = 0.0f, .vcc = 0.0f};
-menu_state_enum menu_state = 0;
+menu_state_enum menu_state = menu_default;
 screen_direction_enum screen_direction = SCREEN_HORIZONTAL_REVERSED;
 
 struct Queue Voltage_queue = {.front = 0, .rear = 0};
@@ -78,7 +80,7 @@ float time_past = 0.0f;
 uint8_t Status = 0;
 uint8_t SavedPoint[SIZE] = {0};
 uint32_t i2c_last_tick;
-char Calc[32] = {0};
+char sprintf_buf[32] = {0};
 
 bool __SPI_8bit_mode;
 /* add user code end private variables */
@@ -220,40 +222,40 @@ void menu_main_display(void)
 	LCD_DrawLine(88, 2, 88, 78, WHITE);
 	LCD_DrawLine(89, 2, 89, 78, WHITE);
 	if (ina226_info.Voltage < 10)
-		sprintf(Calc, "%.3fV", ina226_info.Voltage);
+		sprintf(sprintf_buf, "%.3fV", ina226_info.Voltage);
 	else
-		sprintf(Calc, "%.2fV", ina226_info.Voltage);
-	LCD_ShowString2416(0, 2, Calc, LIGHTBLUE, BLACK);
+		sprintf(sprintf_buf, "%.2fV", ina226_info.Voltage);
+	LCD_ShowString2416(0, 2, sprintf_buf, LIGHTBLUE, BLACK);
 
-	sprintf(Calc, "%.3fA", ina226_info.Current);
-	LCD_ShowString2416(0, 29, Calc, BLUE, BLACK);
+	sprintf(sprintf_buf, "%.3fA", ina226_info.Current);
+	LCD_ShowString2416(0, 29, sprintf_buf, BLUE, BLACK);
 #ifdef __Crazy_DEBUG
-	SEGGER_RTT_printf(0, "%s\r\n", Calc);
+	SEGGER_RTT_printf(0, "%s\r\n", sprintf_buf);
 #endif
 
 	if (ina226_info.Power < 10)
-		sprintf(Calc, "%.3fW", ina226_info.Power);
+		sprintf(sprintf_buf, "%.3fW", ina226_info.Power);
 	else if (ina226_info.Power < 100)
-		sprintf(Calc, "%.2fW", ina226_info.Power);
+		sprintf(sprintf_buf, "%.2fW", ina226_info.Power);
 	else
-		sprintf(Calc, "%.1fW", ina226_info.Power);
-	LCD_ShowString2416(0, 56, Calc, GBLUE, BLACK);
+		sprintf(sprintf_buf, "%.1fW", ina226_info.Power);
+	LCD_ShowString2416(0, 56, sprintf_buf, GBLUE, BLACK);
 #ifdef __Crazy_DEBUG
-	SEGGER_RTT_printf(0, "%s\r\n", Calc);
+	SEGGER_RTT_printf(0, "%s\r\n", sprintf_buf);
 #endif
 
-	sprintf(Calc, "MCU:%.1fC", ADC_result.temp);
-	LCD_ShowString(96, 2, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "Vcc:%.2fV", ADC_result.vcc);
-	LCD_ShowString(96, 18, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "%.2fmAh", mAh);
-	LCD_ShowString(96, 34, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "MCU:%.1fC", ADC_result.temp);
+	LCD_ShowString(96, 2, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "Vcc:%.2fV", ADC_result.vcc);
+	LCD_ShowString(96, 18, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "%.2fmAh", mAh);
+	LCD_ShowString(96, 34, sprintf_buf, GBLUE, BLACK, 12, 0);
 
 	if (mWh < 10000)
-		sprintf(Calc, "%.2fmWh", mWh);
+		sprintf(sprintf_buf, "%.2fmWh", mWh);
 	else
-		sprintf(Calc, "%.1fmWh", mWh);
-	LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
+		sprintf(sprintf_buf, "%.1fmWh", mWh);
+	LCD_ShowString(96, 50, sprintf_buf, GBLUE, BLACK, 12, 0);
 
 	if ((screen_direction == SCREEN_HORIZONTAL_REVERSED && ina226_info.Direction) || screen_direction == SCREEN_HORIZONTAL)
 	{
@@ -272,16 +274,16 @@ void menu_main_display(void)
 void menu_statistics_display(void)
 {
 	LCD_DrawLine(0, 14, 160, 14, GBLUE);
-	sprintf(Calc, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
-	LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "Max A. M. %.1fs", (float)osKernelGetTickCount()/1000);
-	LCD_ShowString(1, 15, Calc, GBLUE, BLACK, 16, 0);
-	sprintf(Calc, "%c %.2f %.2f %.2f", 'V', Voltage_queue.max, Voltage_queue.avg, Voltage_queue.min);
-	LCD_ShowString(1, 30, Calc, GBLUE, BLACK, 16, 0);
-	sprintf(Calc, "%c %.2f %.2f %.2f", 'A', Current_queue.max, Current_queue.avg, Current_queue.min);
-	LCD_ShowString(1, 46, Calc, GBLUE, BLACK, 16, 0);
-	sprintf(Calc, "%c %.2f %.2f %.2f", 'W', Power_queue.max, Power_queue.avg, Power_queue.min);
-	LCD_ShowString(1, 62, Calc, GBLUE, BLACK, 16, 0);
+	sprintf(sprintf_buf, "%.1fV %.2fA %.1fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
+	LCD_ShowString(1, 1, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "Max A. M. %.1fs", (float)osKernelGetTickCount()/1000);
+	LCD_ShowString(1, 15, sprintf_buf, GBLUE, BLACK, 16, 0);
+	sprintf(sprintf_buf, "%c %.2f %.2f %.2f", 'V', Voltage_queue.max, Voltage_queue.avg, Voltage_queue.min);
+	LCD_ShowString(1, 30, sprintf_buf, GBLUE, BLACK, 16, 0);
+	sprintf(sprintf_buf, "%c %.2f %.2f %.2f", 'A', Current_queue.max, Current_queue.avg, Current_queue.min);
+	LCD_ShowString(1, 46, sprintf_buf, GBLUE, BLACK, 16, 0);
+	sprintf(sprintf_buf, "%c %.2f %.2f %.2f", 'W', Power_queue.max, Power_queue.avg, Power_queue.min);
+	LCD_ShowString(1, 62, sprintf_buf, GBLUE, BLACK, 16, 0);
 }
 
 void menu_2nd_display(void)
@@ -292,18 +294,18 @@ void menu_2nd_display(void)
 	status = osKernelGetInfo(&osv, infobuf, sizeof(infobuf));
 
 	LCD_DrawLine(0, 14, 160, 14, GBLUE);
-	sprintf(Calc, "Crazy USB meter by wwng");
-	LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "MCU: AT32F421G8U7 %d", __AT32F421_LIBRARY_VERSION);
-	LCD_ShowString(1, 15, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "INA226 ID: 0x%02x 0x%02x", I2C_Read_2Byte(0xFE), I2C_Read_2Byte(0xFF));
-	LCD_ShowString(1, 27, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "%s kernel %d", infobuf, osv.kernel);
-	LCD_ShowString(1, 39, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "key_scan: %d/%d bytes.", osThreadGetStackSpace(key_scan_ID), osThreadGetStackSize(key_scan_ID));
-	LCD_ShowString(1, 51, Calc, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "LCD_Update: %d/%d bytes.", osThreadGetStackSpace(LCD_Update_ID), osThreadGetStackSize(LCD_Update_ID));
-	LCD_ShowString(1, 63, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "Crazy USB meter by wwng");
+	LCD_ShowString(1, 1, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "MCU: AT32F421G8U7 %d", __AT32F421_LIBRARY_VERSION);
+	LCD_ShowString(1, 15, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "INA226 ID: 0x%02x 0x%02x", I2C_Read_2Byte(0xFE), I2C_Read_2Byte(0xFF));
+	LCD_ShowString(1, 27, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "%s kernel %d", infobuf, osv.kernel);
+	LCD_ShowString(1, 39, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "key_scan: %d/%d bytes.", osThreadGetStackSpace(key_scan_ID), osThreadGetStackSize(key_scan_ID));
+	LCD_ShowString(1, 51, sprintf_buf, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "LCD_Update: %d/%d bytes.", osThreadGetStackSpace(LCD_Update_ID), osThreadGetStackSize(LCD_Update_ID));
+	LCD_ShowString(1, 63, sprintf_buf, GBLUE, BLACK, 12, 0);
 }
 
 void lcd_timer_cb(void *param)

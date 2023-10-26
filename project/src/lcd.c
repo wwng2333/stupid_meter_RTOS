@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 extern bool __SPI_8bit_mode;
-extern char Calc[32];
+extern char sprintf_buf[32];
 extern ina226_info_struct ina226_info;
 extern ADC_result_struct ADC_result;
 
@@ -15,30 +15,30 @@ void LCD_ChartPrint(char flag, char unit, struct Queue* queue)
 	LCD_DrawLine(0, 14, SIZE, 14, GBLUE);
 	LCD_DrawLine(0, 46, SIZE, 46, GBLUE);
 	LCD_DrawLine(0, 78, SIZE, 78, GBLUE);
-	sprintf(Calc, "%.1fV %.2fA %.2fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
-	LCD_ShowString(1, 1, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "%.1fV %.2fA %.2fW %.1fC   ", ina226_info.Voltage, ina226_info.Current, ina226_info.Power, ADC_result.temp);
+	LCD_ShowString(1, 1, sprintf_buf, GBLUE, BLACK, 12, 0);
 	LCD_ShowChar(150, 1, flag, GBLUE, BLACK, 12, 0);
-	sprintf(Calc, "0.0%c", unit);
-	LCD_ShowString(SIZE+2, 70, Calc, GBLUE, BLACK, 12, 0);
+	sprintf(sprintf_buf, "0.0%c", unit);
+	LCD_ShowString(SIZE+2, 70, sprintf_buf, GBLUE, BLACK, 12, 0);
 	if((queue->max)/2 > 10) 
 	{
-		sprintf(Calc, "%.0f", (queue->max)/2);
-		LCD_ShowString(SIZE+2, 40, Calc, GBLUE, BLACK, 12, 0);
+		sprintf(sprintf_buf, "%.0f", (queue->max)/2);
+		LCD_ShowString(SIZE+2, 40, sprintf_buf, GBLUE, BLACK, 12, 0);
 	}
 	else 
 	{
-		sprintf(Calc, "%.2f", (queue->max)/2);
-		LCD_ShowString(SIZE+2, 40, Calc, GBLUE, BLACK, 12, 0);
+		sprintf(sprintf_buf, "%.2f", (queue->max)/2);
+		LCD_ShowString(SIZE+2, 40, sprintf_buf, GBLUE, BLACK, 12, 0);
 	}
 	if(queue->max > 10) 
 	{
-		sprintf(Calc, "%.0f", queue->max);
-		LCD_ShowString(SIZE+2, 13, Calc, GBLUE, BLACK, 12, 0);
+		sprintf(sprintf_buf, "%.0f", queue->max);
+		LCD_ShowString(SIZE+2, 13, sprintf_buf, GBLUE, BLACK, 12, 0);
 	}
 	else 
 	{
-		sprintf(Calc, "%.2f", queue->max);
-		LCD_ShowString(SIZE+2, 13, Calc, GBLUE, BLACK, 12, 0);
+		sprintf(sprintf_buf, "%.2f", queue->max);
+		LCD_ShowString(SIZE+2, 13, sprintf_buf, GBLUE, BLACK, 12, 0);
 	}
 	ClearPrint();
 	printQueue(queue);

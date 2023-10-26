@@ -229,7 +229,7 @@ void LCD_WR_REG(u8 dat)
 ******************************************************************************/
 void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 {
-	if(screen_direction==0)
+	if(screen_direction == SCREEN_VERTICAL)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+26);
@@ -239,7 +239,7 @@ void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 		LCD_WR_DATA(y2+1);
 		LCD_WR_REG(0x2c);//储存器写
 	}
-	else if(screen_direction==1)
+	else if(screen_direction == SCREEN_VERTICAL_REVERSED)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+26);
@@ -249,7 +249,7 @@ void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 		LCD_WR_DATA(y2+1);
 		LCD_WR_REG(0x2c);//储存器写
 	}
-	else if(screen_direction==2)
+	else if(screen_direction == SCREEN_HORIZONTAL)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+1);
