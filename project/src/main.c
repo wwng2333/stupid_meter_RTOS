@@ -36,6 +36,7 @@
 #include "Queue.h"
 #include "lcd.h"
 #include "lcd_init.h"
+#include "sfud.h"
 #include <stdbool.h>
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
@@ -83,6 +84,9 @@ uint32_t i2c_last_tick;
 char sprintf_buf[32] = {0};
 
 bool __SPI_8bit_mode;
+
+#define SFUD_DEMO_TEST_BUFFER_SIZE                     1024
+static uint8_t sfud_demo_test_buf[SFUD_DEMO_TEST_BUFFER_SIZE];
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
@@ -372,6 +376,9 @@ int main(void)
 
 	/* config LCD screen. */
 	LCD_SPI1_init();
+
+	sfud_init();
+	sfud_test(0, sizeof(sfud_demo_test_buf), sfud_demo_test_buf);
 
 	/* add user code begin 2 */
 	osKernelInitialize();
