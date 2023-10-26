@@ -229,45 +229,44 @@ void LCD_WR_REG(u8 dat)
 ******************************************************************************/
 void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 {
-	if(screen_direction == SCREEN_VERTICAL)
+	switch(screen_direction)
 	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+26);
-		LCD_WR_DATA(x2+26);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+1);
-		LCD_WR_DATA(y2+1);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else if(screen_direction == SCREEN_VERTICAL_REVERSED)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+26);
-		LCD_WR_DATA(x2+26);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+1);
-		LCD_WR_DATA(y2+1);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else if(screen_direction == SCREEN_HORIZONTAL)
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+1);
-		LCD_WR_DATA(x2+1);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+26);
-		LCD_WR_DATA(y2+26);
-		LCD_WR_REG(0x2c);//储存器写
-	}
-	else
-	{
-		LCD_WR_REG(0x2a);//列地址设置
-		LCD_WR_DATA(x1+1);
-		LCD_WR_DATA(x2+1);
-		LCD_WR_REG(0x2b);//行地址设置
-		LCD_WR_DATA(y1+26);
-		LCD_WR_DATA(y2+26);
-		LCD_WR_REG(0x2c);//储存器写
+		case SCREEN_VERTICAL:
+			LCD_WR_REG(0x2a);//列地址设置
+			LCD_WR_DATA(x1+26);
+			LCD_WR_DATA(x2+26);
+			LCD_WR_REG(0x2b);//行地址设置
+			LCD_WR_DATA(y1+1);
+			LCD_WR_DATA(y2+1);
+			LCD_WR_REG(0x2c);//储存器写
+			break;
+		case SCREEN_VERTICAL_REVERSED:
+			LCD_WR_REG(0x2a);//列地址设置
+			LCD_WR_DATA(x1+26);
+			LCD_WR_DATA(x2+26);
+			LCD_WR_REG(0x2b);//行地址设置
+			LCD_WR_DATA(y1+1);
+			LCD_WR_DATA(y2+1);
+			LCD_WR_REG(0x2c);//储存器写
+			break;
+		case SCREEN_HORIZONTAL:
+			LCD_WR_REG(0x2a);//列地址设置
+			LCD_WR_DATA(x1+1);
+			LCD_WR_DATA(x2+1);
+			LCD_WR_REG(0x2b);//行地址设置
+			LCD_WR_DATA(y1+26);
+			LCD_WR_DATA(y2+26);
+			LCD_WR_REG(0x2c);//储存器写
+			break;
+		case SCREEN_HORIZONTAL_REVERSED:
+			LCD_WR_REG(0x2a);//列地址设置
+			LCD_WR_DATA(x1+1);
+			LCD_WR_DATA(x2+1);
+			LCD_WR_REG(0x2b);//行地址设置
+			LCD_WR_DATA(y1+26);
+			LCD_WR_DATA(y2+26);
+			LCD_WR_REG(0x2c);//储存器写
+			break;
 	}
 }
 
@@ -363,10 +362,21 @@ void LCD_Init_Swap(void)
 	LCD_WR_REG(0x3A);     
 	LCD_WR_DATA8(0x05);   
 	LCD_WR_REG(0x36);
-	if(screen_direction==0)LCD_WR_DATA8(0x08);
-	else if(screen_direction==1)LCD_WR_DATA8(0xC8);
-	else if(screen_direction==2)LCD_WR_DATA8(0x78);
-	else LCD_WR_DATA8(0xA8);
+	switch(screen_direction)
+	{
+		case SCREEN_VERTICAL:
+			LCD_WR_DATA8(0x08);
+			break;
+		case SCREEN_VERTICAL_REVERSED:
+			LCD_WR_DATA8(0xC8);
+			break;
+		case SCREEN_HORIZONTAL:
+			LCD_WR_DATA8(0x78);
+			break;
+		case SCREEN_HORIZONTAL_REVERSED:
+			LCD_WR_DATA8(0xA8);
+			break;
+	}
 	LCD_WR_REG(0x21);     //Display inversion
 	LCD_WR_REG(0x29);     //Display on
 	LCD_WR_REG(0x2A);     //Set Column Address
