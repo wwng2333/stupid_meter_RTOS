@@ -183,6 +183,7 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 		enqueue(&Power_queue, ina226_info.Power);
 		mAh += time_past * ina226_info.Current;
 		mWh += time_past * ina226_info.Power;
+		osKernelLock();
 		switch (menu_state)
 		{
 		case menu_default:
@@ -209,6 +210,7 @@ __NO_RETURN void LCD_Update_thread1(void *arg)
 			menu_2nd_display();
 			break;
 		}
+		osKernelUnlock();
 		osEventFlagsClear(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 	}
 }
@@ -253,11 +255,11 @@ void menu_main_display(void)
 		sprintf(Calc, "%.1fmWh", mWh);
 	LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
 
-	if (USE_HORIZONTAL == 3 && ina226_info.Direction)
+	if ((USE_HORIZONTAL == 3 && ina226_info.Direction) || USE_HORIZONTAL == 2)
 	{
 		LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
 	} 
-	else if(USE_HORIZONTAL == 2 && ina226_info.Direction)
+	else if((USE_HORIZONTAL == 2 && ina226_info.Direction) || USE_HORIZONTAL == 3)
 	{
 		LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
 	}
