@@ -5,6 +5,7 @@
 #include "cmsis_os2.h"
 #include <stdbool.h>
 
+extern screen_direction_enum screen_direction;  //设置横屏或者竖屏显示 0或1为竖屏 2或3为横屏
 extern bool __SPI_8bit_mode;
 
 /**
@@ -228,7 +229,7 @@ void LCD_WR_REG(u8 dat)
 ******************************************************************************/
 void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 {
-	if(USE_HORIZONTAL==0)
+	if(screen_direction==0)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+26);
@@ -238,7 +239,7 @@ void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 		LCD_WR_DATA(y2+1);
 		LCD_WR_REG(0x2c);//储存器写
 	}
-	else if(USE_HORIZONTAL==1)
+	else if(screen_direction==1)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+26);
@@ -248,7 +249,7 @@ void LCD_Address_Set(u16 x1,u16 y1,u16 x2,u16 y2)
 		LCD_WR_DATA(y2+1);
 		LCD_WR_REG(0x2c);//储存器写
 	}
-	else if(USE_HORIZONTAL==2)
+	else if(screen_direction==2)
 	{
 		LCD_WR_REG(0x2a);//列地址设置
 		LCD_WR_DATA(x1+1);
@@ -355,26 +356,6 @@ void LCD_Init(void)
 	LCD_WR_DATA8(0x80);  
 	
 	LCD_Init_Swap();
-//	LCD_WR_REG(0x3A);     
-//	LCD_WR_DATA8(0x05);   
-//	LCD_WR_REG(0x36);
-//	if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x08);
-//	else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC8);
-//	else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x78);
-//	else LCD_WR_DATA8(0xA8);   
-//	LCD_WR_REG(0x21);     //Display inversion
-//	LCD_WR_REG(0x29);     //Display on
-//	LCD_WR_REG(0x2A);     //Set Column Address
-//	LCD_WR_DATA8(0x00);   
-//	LCD_WR_DATA8(0x1A);  //26  
-//	LCD_WR_DATA8(0x00);   
-//	LCD_WR_DATA8(0x69);   //105 
-//	LCD_WR_REG(0x2B);     //Set Page Address
-//	LCD_WR_DATA8(0x00);   
-//	LCD_WR_DATA8(0x01);    //1
-//	LCD_WR_DATA8(0x00);   
-//	LCD_WR_DATA8(0xA0);    //160
-//	LCD_WR_REG(0x2C); 
 }
 
 void LCD_Init_Swap(void)
@@ -382,10 +363,10 @@ void LCD_Init_Swap(void)
 	LCD_WR_REG(0x3A);     
 	LCD_WR_DATA8(0x05);   
 	LCD_WR_REG(0x36);
-	if(USE_HORIZONTAL==0)LCD_WR_DATA8(0x08);
-	else if(USE_HORIZONTAL==1)LCD_WR_DATA8(0xC8);
-	else if(USE_HORIZONTAL==2)LCD_WR_DATA8(0x78);
-	else LCD_WR_DATA8(0xA8);   
+	if(screen_direction==0)LCD_WR_DATA8(0x08);
+	else if(screen_direction==1)LCD_WR_DATA8(0xC8);
+	else if(screen_direction==2)LCD_WR_DATA8(0x78);
+	else LCD_WR_DATA8(0xA8);
 	LCD_WR_REG(0x21);     //Display inversion
 	LCD_WR_REG(0x29);     //Display on
 	LCD_WR_REG(0x2A);     //Set Column Address

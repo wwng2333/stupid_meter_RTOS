@@ -3,9 +3,7 @@
 
 #include "at32f421_wk_config.h"
 
-extern __IO uint8_t USE_HORIZONTAL;  //…Ë÷√∫·∆¡ªÚ’ﬂ ˙∆¡œ‘ æ 0ªÚ1Œ™ ˙∆¡ 2ªÚ3Œ™∫·∆¡
-
-//#if USE_HORIZONTAL==0||USE_HORIZONTAL==1
+//#if screen_direction==0||screen_direction==1
 //#define LCD_W 80
 //#define LCD_H 160
 
@@ -14,7 +12,13 @@ extern __IO uint8_t USE_HORIZONTAL;  //…Ë÷√∫·∆¡ªÚ’ﬂ ˙∆¡œ‘ æ 0ªÚ1Œ™ ˙∆¡ 2ªÚ3Œ™∫·∆
 #define LCD_H 80
 //#endif
 
-
+typedef enum screen_direction_enum 
+{
+	SCREEN_VERTICAL = 0,
+	SCREEN_VERTICAL_REVERSED,
+	SCREEN_HORIZONTAL,
+	SCREEN_HORIZONTAL_REVERSED,
+} screen_direction_enum;
 
 //-----------------LCD∂Àø⁄∂®“Â---------------- 
 

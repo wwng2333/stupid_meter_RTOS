@@ -65,6 +65,7 @@ key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .releas
 ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f, .Direction = 0};
 ADC_result_struct ADC_result = {.result = {0}, .temp = 0.0f, .vcc = 0.0f};
 menu_state_enum menu_state = 0;
+screen_direction_enum screen_direction = SCREEN_HORIZONTAL_REVERSED;
 
 struct Queue Voltage_queue = {.front = 0, .rear = 0};
 struct Queue Current_queue = {.front = 0, .rear = 0};
@@ -74,7 +75,6 @@ float mAh = 0.0f;
 float mWh = 0.0f;
 float time_past = 0.0f;
 
-__IO uint8_t USE_HORIZONTAL = 3;
 uint8_t Status = 0;
 uint8_t SavedPoint[SIZE] = {0};
 uint32_t i2c_last_tick;
@@ -147,10 +147,10 @@ __NO_RETURN void key_scan_thread1(void *arg)
 					else
 					// long press > 200ms
 					{
-						if (USE_HORIZONTAL == 3)
-							USE_HORIZONTAL = 2;
+						if (screen_direction == SCREEN_HORIZONTAL_REVERSED)
+							screen_direction = SCREEN_HORIZONTAL;
 						else
-							USE_HORIZONTAL = 3;
+							screen_direction = SCREEN_HORIZONTAL_REVERSED;
 						LCD_Init_Swap();
 					}
 					LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
@@ -255,11 +255,11 @@ void menu_main_display(void)
 		sprintf(Calc, "%.1fmWh", mWh);
 	LCD_ShowString(96, 50, Calc, GBLUE, BLACK, 12, 0);
 
-	if ((USE_HORIZONTAL == 3 && ina226_info.Direction) || USE_HORIZONTAL == 2)
+	if ((screen_direction == SCREEN_HORIZONTAL_REVERSED && ina226_info.Direction) || screen_direction == SCREEN_HORIZONTAL)
 	{
 		LCD_ShowString(96, 62, "<------", GBLUE, BLACK, 16, 0);
 	} 
-	else if((USE_HORIZONTAL == 2 && ina226_info.Direction) || USE_HORIZONTAL == 3)
+	else if((screen_direction == SCREEN_HORIZONTAL && ina226_info.Direction) || screen_direction == SCREEN_HORIZONTAL_REVERSED)
 	{
 		LCD_ShowString(96, 62, "------>", GBLUE, BLACK, 16, 0);
 	}
