@@ -13,8 +13,12 @@
  * 2023-02-22     smartmx      add dual flash index function
  *
  */
+ 
 #include "tfdb_port.h"
 #include "w25qxx.h"
+#include "flash.h"
+
+
 /**
  * Read data from flash.
  * @note This operation's units is refer to TFDB_WRITE_UNIT_BYTES.
@@ -29,7 +33,11 @@ TFDB_Err_Code tfdb_port_read(tfdb_addr_t addr, uint8_t *buf, size_t size)
 {
 	TFDB_Err_Code result = TFDB_NO_ERR;
 	/* You can add your code under here. */
+#ifdef __TFDB_USE_25QXX
 	W25Q_Read(buf, addr, size);
+#elif defined __TFDB_USE_FLASH
+	flash_read(addr, buf, size);
+#endif
 	return result;
 }
 
@@ -66,7 +74,11 @@ TFDB_Err_Code tfdb_port_write(tfdb_addr_t addr, const uint8_t *buf, size_t size)
 {
 	TFDB_Err_Code result = TFDB_NO_ERR;
 	/* You can add your code under here. */
-	W25Q_Write(buf, addr, size);
+#ifdef __TFDB_USE_25QXX
+	W25Q_Write((uint8_t *)buf, addr, size);
+#elif defined __TFDB_USE_FLASH
+	flash_write(addr, (uint16_t *)buf, size);
+#endif
 	return result;
 }
 

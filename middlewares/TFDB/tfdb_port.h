@@ -16,6 +16,9 @@
 #ifndef _TFDB_PORT_H_
 #define _TFDB_PORT_H_
 
+#define __TFDB_USE_FLASH
+//#define __TFDB_USE_25QXX
+
 /* add headers of your chips */
 #include "stdint.h"
 #include "stdio.h"
@@ -58,12 +61,20 @@ typedef enum
 
 /* The size of value in flash after erased, only support 1/2/4.
  * This value must not bigger than TFDB_WRITE_UNIT_BYTES. */
+#ifdef __TFDB_USE_25QXX
 #define TFDB_VALUE_AFTER_ERASE_SIZE         1
+#elif defined __TFDB_USE_FLASH
+#define TFDB_VALUE_AFTER_ERASE_SIZE         1
+#endif
 
 /* the flash write granularity, unit: byte
  * only support 1(stm32f4)/ 2(CH559)/ 4(stm32f1)/ 8(stm32L4) */
-//25qxx=1
-#define TFDB_WRITE_UNIT_BYTES               1 /* @note you must define it for a value */
+//25qxx=1, at32f421=2
+#ifdef __TFDB_USE_25QXX
+#define TFDB_WRITE_UNIT_BYTES         1 /* @note you must define it for a value */
+#elif defined __TFDB_USE_FLASH
+#define TFDB_WRITE_UNIT_BYTES         2
+#endif
 
 #if TFDB_VALUE_AFTER_ERASE_SIZE > TFDB_WRITE_UNIT_BYTES
     #error "TFDB_VALUE_AFTER_ERASE_SIZE must not bigger than TFDB_WRITE_UNIT_BYTES."

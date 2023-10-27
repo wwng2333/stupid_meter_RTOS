@@ -62,27 +62,31 @@
 #ifdef __ENABLE_TFDB
 const tfdb_index_t test_index = {
     .end_byte = 0x00,
+#ifdef __TFDB_USE_25QXX
     .flash_addr = 0x4000,
+#elif defined __TFDB_USE_FLASH
+    .flash_addr = 0x800FF00,
+#endif
     .flash_size = 256,
     .value_length = 1,
 };
 tfdb_addr_t addr = 0;
 uint8_t test_buf[TFDB_ALIGNED_RW_BUFFER_SIZE(2,1)];
-uint16_t test_value;
+uint16_t boot_time;
 
 void tfdb_test(void)
 {
 	TFDB_Err_Code result;
 
-	result = tfdb_get(&test_index, test_buf, &addr, &test_value);
+	result = tfdb_get(&test_index, test_buf, &addr, &boot_time);
 	if(result == TFDB_NO_ERR)
 	{
-			printf("get ok, addr:%x, value:%x\n", addr, test_value);
+			printf("get ok, addr:%x, value:%x\n", addr, boot_time);
 	}	
 	
-	test_value++;
+	boot_time++;
 	
-	result = tfdb_set(&test_index, test_buf, &addr, &test_value);
+	result = tfdb_set(&test_index, test_buf, &addr, &boot_time);
 	if(result == TFDB_NO_ERR)
 	{
 			printf("set ok, addr:%x\n", addr);
@@ -362,7 +366,7 @@ void menu_2nd_display(void)
 	status = osKernelGetInfo(&osv, infobuf, sizeof(infobuf));
 
 	LCD_DrawLine(0, 14, 160, 14, GBLUE);
-	sprintf(sprintf_buf, "Crazy USB meter by wwng");
+	sprintf(sprintf_buf, "Crazy USB meter %d", boot_time);
 	LCD_ShowString(1, 1, sprintf_buf, GBLUE, BLACK, 12, 0);
 	sprintf(sprintf_buf, "MCU: AT32F421G8U7 %d", __AT32F421_LIBRARY_VERSION);
 	LCD_ShowString(1, 15, sprintf_buf, GBLUE, BLACK, 12, 0);
