@@ -24,6 +24,7 @@
 
 #include "at32f421_wk_config.h"
 #include "flash.h"
+#include "cmsis_os2.h"
 
 /** @addtogroup AT32F421_periph_examples
   * @{
@@ -33,7 +34,7 @@
   * @{
   */
 
-#define SECTOR_SIZE                      0x100   /* this parameter depends on the specific model of the chip */
+#define SECTOR_SIZE		0x100   /* this parameter depends on the specific model of the chip */
 
 uint16_t flash_buf[SECTOR_SIZE / 2];
 
@@ -90,7 +91,8 @@ error_status flash_write(uint32_t write_addr, uint16_t *p_buffer, uint16_t num_w
   uint16_t sector_remain;
   uint16_t i;
   flash_status_type status = FLASH_OPERATE_DONE;
- 
+	
+	osKernelLock();
   flash_unlock();
   offset_addr = write_addr - FLASH_BASE;
   sector_position = offset_addr / SECTOR_SIZE;
@@ -146,6 +148,7 @@ error_status flash_write(uint32_t write_addr, uint16_t *p_buffer, uint16_t num_w
     }
   }
   flash_lock();
+	osKernelUnlock();
   return SUCCESS;
 }
 
