@@ -34,12 +34,12 @@
 
 #ifdef EF_USING_ENV
 /* Auto update ENV to latest default when current ENV version number is changed. */
-/* #define EF_ENV_AUTO_UPDATE */
+#define EF_ENV_AUTO_UPDATE
 /**
  * ENV version number defined by user.
  * Please change it when your firmware add a new ENV to default_env_set.
  */
-#define EF_ENV_VER_NUM 0           /* @note you must define it for a value, such as 0 */
+#define EF_ENV_VER_NUM 1           /* @note you must define it for a value, such as 0 */
  
 /* MCU Endian Configuration, default is Little Endian Order.*/
 ///* #define EF_BIG_ENDIAN  */         
@@ -87,7 +87,7 @@
 #define ENV_AREA_SIZE  (16 * EF_ERASE_MIN_SIZE)           /* @note you must define it for a value if you used ENV */
 
 /* saved log area size */
-#define LOG_AREA_SIZE  (16 * EF_ERASE_MIN_SIZE)           /* @note you must define it for a value if you used log */
+#define LOG_AREA_SIZE  (0 * EF_ERASE_MIN_SIZE)           /* @note you must define it for a value if you used log */
 
 /* print debug information of flash */
 //#define PRINT_DEBUG
