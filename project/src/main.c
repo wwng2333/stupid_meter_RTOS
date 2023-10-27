@@ -24,6 +24,7 @@
  */
 //#define __ENABLE_EventRecorder
 //#define __ENABLE_EasyFlash
+#define __ENABLE_TFDB
 /* add user code end Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -31,16 +32,20 @@
 #include "I2C.h"
 #include "cmsis_os2.h"
 #include "RTE_Components.h"
-#ifdef __ENABLE_EventRecorder
-#include "EventRecorder.h"
-#endif
 #include "Queue.h"
 #include "lcd.h"
 #include "lcd_init.h"
 #include <stdbool.h>
+#ifdef __ENABLE_EventRecorder
+#include "EventRecorder.h"
+#endif
 #ifdef __ENABLE_EasyFlash
 #include "sfud.h"
 #include <easyflash.h>
+#endif
+#ifdef __ENABLE_TFDB
+#include "tinyflashdb.h"
+#include "w25qxx.h"
 #endif
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
@@ -54,6 +59,38 @@
 
 /* private define ------------------------------------------------------------*/
 /* add user code begin private define */
+#ifdef __ENABLE_TFDB
+const tfdb_index_t test_index = {
+    .end_byte = 0x00,
+    .flash_addr = 0x4000,
+    .flash_size = 256,
+    .value_length = 1,
+};
+tfdb_addr_t addr = 0;
+uint8_t test_buf[TFDB_ALIGNED_RW_BUFFER_SIZE(2,1)];
+uint16_t test_value;
+
+void tfdb_test(void)
+{
+	TFDB_Err_Code result;
+
+	result = tfdb_get(&test_index, test_buf, &addr, &test_value);
+	if(result == TFDB_NO_ERR)
+	{
+			printf("get ok, addr:%x, value:%x\n", addr, test_value);
+	}	
+	
+	test_value++;
+	
+	result = tfdb_set(&test_index, test_buf, &addr, &test_value);
+	if(result == TFDB_NO_ERR)
+	{
+			printf("set ok, addr:%x\n", addr);
+	}
+
+}
+
+#endif
 /* add user code end private define */
 
 /* private macro -------------------------------------------------------------*/
@@ -360,6 +397,10 @@ void app_main(void *arg)
 	} 
 #endif
 
+#ifdef __ENABLE_TFDB
+	tfdb_test();
+#endif
+	
 	INA226_Init();
 	LCD_Init();
 	__SPI_8bit_mode = 0;
@@ -409,6 +450,7 @@ int main(void)
 
 	/* config LCD screen. */
 	LCD_SPI1_init();
+	W25Q_SPI2_Init();
 
 	/* add user code begin 2 */
 	osKernelInitialize();

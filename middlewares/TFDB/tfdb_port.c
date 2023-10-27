@@ -14,7 +14,7 @@
  *
  */
 #include "tfdb_port.h"
-
+#include "w25qxx.h"
 /**
  * Read data from flash.
  * @note This operation's units is refer to TFDB_WRITE_UNIT_BYTES.
@@ -27,10 +27,10 @@
  */
 TFDB_Err_Code tfdb_port_read(tfdb_addr_t addr, uint8_t *buf, size_t size)
 {
-    TFDB_Err_Code result = TFDB_NO_ERR;
-    /* You can add your code under here. */
-
-    return result;
+	TFDB_Err_Code result = TFDB_NO_ERR;
+	/* You can add your code under here. */
+	W25Q_Read(buf, addr, size);
+	return result;
 }
 
 /**
@@ -42,10 +42,10 @@ TFDB_Err_Code tfdb_port_read(tfdb_addr_t addr, uint8_t *buf, size_t size)
  */
 TFDB_Err_Code tfdb_port_erase(tfdb_addr_t addr, size_t size)
 {
-    TFDB_Err_Code result = TFDB_NO_ERR;
-    /* You can add your code under here. */
-
-    return result;
+	TFDB_Err_Code result = TFDB_NO_ERR;
+	/* You can add your code under here. */
+	
+	return result;
 }
 
 /**
@@ -64,10 +64,10 @@ TFDB_Err_Code tfdb_port_erase(tfdb_addr_t addr, size_t size)
  */
 TFDB_Err_Code tfdb_port_write(tfdb_addr_t addr, const uint8_t *buf, size_t size)
 {
-    TFDB_Err_Code result = TFDB_NO_ERR;
-    /* You can add your code under here. */
-
-    return result;
+	TFDB_Err_Code result = TFDB_NO_ERR;
+	/* You can add your code under here. */
+	W25Q_Write(buf, addr, size);
+	return result;
 }
 
 

@@ -18,6 +18,7 @@
 
 /* add headers of your chips */
 #include "stdint.h"
+#include "stdio.h"
 
 /* tinyflashdb error code */
 typedef enum
@@ -61,7 +62,8 @@ typedef enum
 
 /* the flash write granularity, unit: byte
  * only support 1(stm32f4)/ 2(CH559)/ 4(stm32f1)/ 8(stm32L4) */
-#define TFDB_WRITE_UNIT_BYTES               4 /* @note you must define it for a value */
+//25qxx=1
+#define TFDB_WRITE_UNIT_BYTES               1 /* @note you must define it for a value */
 
 #if TFDB_VALUE_AFTER_ERASE_SIZE > TFDB_WRITE_UNIT_BYTES
     #error "TFDB_VALUE_AFTER_ERASE_SIZE must not bigger than TFDB_WRITE_UNIT_BYTES."
