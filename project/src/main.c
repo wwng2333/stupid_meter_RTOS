@@ -22,7 +22,8 @@
  *
  **************************************************************************
  */
-#define __ENABLE_EventRecorder
+//#define __ENABLE_EventRecorder
+//#define __ENABLE_EasyFlash
 /* add user code end Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -36,8 +37,11 @@
 #include "Queue.h"
 #include "lcd.h"
 #include "lcd_init.h"
-#include "sfud.h"
 #include <stdbool.h>
+#ifdef __ENABLE_EasyFlash
+#include "sfud.h"
+#include <easyflash.h>
+#endif
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
 
@@ -85,8 +89,6 @@ char sprintf_buf[32] = {0};
 
 bool __SPI_8bit_mode;
 
-#define SFUD_DEMO_TEST_BUFFER_SIZE                     1024
-static uint8_t sfud_demo_test_buf[SFUD_DEMO_TEST_BUFFER_SIZE];
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
@@ -95,11 +97,12 @@ static uint8_t sfud_demo_test_buf[SFUD_DEMO_TEST_BUFFER_SIZE];
 
 /* private user code ---------------------------------------------------------*/
 /* add user code begin 0 */
+
 static const osThreadAttr_t ThreadAttr_app_main =
 	{
 		.name = "app_main",
 		.priority = (osPriority_t)osPriorityNormal,
-		.stack_size = 512};
+		.stack_size = 2048};
 
 static const osThreadAttr_t ThreadAttr_key_scan =
 	{
@@ -120,6 +123,30 @@ static const osEventFlagsAttr_t FlagsAttr_LCD_Update_event =
 static const osTimerAttr_t timerAttr_lcd_cb = {
 	.name = "LCD_timer0",
 };
+
+#ifdef __ENABLE_EasyFlash
+/**
+ * Env demo.
+ */
+static void test_env(void) 
+{
+	uint32_t i_boot_times = NULL;
+	char *c_old_boot_times, c_new_boot_times[11] = {0};
+
+	/* get the boot count number from Env */
+	c_old_boot_times = ef_get_env("boot_times");
+	//assert_param(c_old_boot_times);
+	i_boot_times = atol(c_old_boot_times);
+	/* boot count +1 */
+	i_boot_times ++;
+	printf("The system now boot %d times\n\r", i_boot_times);
+	/* interger to string */
+	sprintf(c_new_boot_times,"%u", i_boot_times);
+	/* set and store the boot count number to Env */
+	ef_set_env("boot_times", c_new_boot_times);
+	ef_save_env();
+}
+#endif
 
 __NO_RETURN void key_scan_thread1(void *arg)
 {
@@ -327,6 +354,12 @@ void ADC_timer_cb(void)
 
 void app_main(void *arg)
 {
+#ifdef __ENABLE_EasyFlash
+	if (easyflash_init() == EF_NO_ERR) {
+			test_env();
+	} 
+#endif
+
 	INA226_Init();
 	LCD_Init();
 	__SPI_8bit_mode = 0;
@@ -376,9 +409,6 @@ int main(void)
 
 	/* config LCD screen. */
 	LCD_SPI1_init();
-
-	sfud_init();
-	sfud_test(0, sizeof(sfud_demo_test_buf), sfud_demo_test_buf);
 
 	/* add user code begin 2 */
 	osKernelInitialize();

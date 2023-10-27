@@ -29,6 +29,7 @@
 #include <sfud.h>
 #include <stdarg.h>
 #include "at32f421_wk_config.h"
+#include "cmsis_os2.h"
 
 typedef struct {
     spi_type *spix;
@@ -38,7 +39,7 @@ typedef struct {
 
 static spi_user_data spi2 = { .spix = SPI2, .cs_gpiox = GPIOA, .cs_gpio_pin = GPIO_PINS_15 };
 
-static char log_buf[256];
+//static char log_buf[256];
 
 void sfud_log_debug(const char *file, const long line, const char *format, ...);
 
@@ -196,7 +197,7 @@ static sfud_err qspi_read(const struct __sfud_spi *spi, uint32_t addr, sfud_qspi
 static void retry_delay_100us(void) {
 //    uint32_t delay = 120;
 //    while(delay--);
-	delay_us(100);
+	osDelay(1);
 }
 
 sfud_err sfud_spi_port_init(sfud_flash *flash) {
@@ -212,8 +213,8 @@ sfud_err sfud_spi_port_init(sfud_flash *flash) {
         spi_configuration(&spi2);
         /* Flash port */
         flash->spi.wr = spi_write_read;
-        flash->spi.lock = spi_lock;
-        flash->spi.unlock = spi_unlock;
+        //flash->spi.lock = spi_lock;
+        //flash->spi.unlock = spi_unlock;
         flash->spi.user_data = &spi2;
         /* about 100 microsecond delay */
         flash->retry.delay = retry_delay_100us;
@@ -236,15 +237,15 @@ sfud_err sfud_spi_port_init(sfud_flash *flash) {
  * @param ... args
  */
 void sfud_log_debug(const char *file, const long line, const char *format, ...) {
-    va_list args;
+//    va_list args;
 
-    /* args point to the first variable parameter */
-    va_start(args, format);
-    printf("[SFUD](%s:%ld) ", file, line);
-    /* must use vprintf to print */
-    vsnprintf(log_buf, sizeof(log_buf), format, args);
-    printf("%s\n", log_buf);
-    va_end(args);
+//    /* args point to the first variable parameter */
+//    va_start(args, format);
+//    printf("[SFUD](%s:%ld) ", file, line);
+//    /* must use vprintf to print */
+//    vsnprintf(log_buf, sizeof(log_buf), format, args);
+//    printf("%s\n", log_buf);
+//    va_end(args);
 }
 
 /**
@@ -254,13 +255,13 @@ void sfud_log_debug(const char *file, const long line, const char *format, ...) 
  * @param ... args
  */
 void sfud_log_info(const char *format, ...) {
-    va_list args;
+//    va_list args;
 
-    /* args point to the first variable parameter */
-    va_start(args, format);
-    printf("[SFUD]");
-    /* must use vprintf to print */
-    vsnprintf(log_buf, sizeof(log_buf), format, args);
-    printf("%s\n", log_buf);
-    va_end(args);
+//    /* args point to the first variable parameter */
+//    va_start(args, format);
+//    printf("[SFUD]");
+//    /* must use vprintf to print */
+//    vsnprintf(log_buf, sizeof(log_buf), format, args);
+//    printf("%s\n", log_buf);
+//    va_end(args);
 }
