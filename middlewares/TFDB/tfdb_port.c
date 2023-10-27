@@ -36,7 +36,7 @@ TFDB_Err_Code tfdb_port_read(tfdb_addr_t addr, uint8_t *buf, size_t size)
 #ifdef __TFDB_USE_25QXX
 	W25Q_Read(buf, addr, size);
 #elif defined __TFDB_USE_FLASH
-	flash_read(addr, buf, size);
+	flash_read(addr, (uint16_t *)buf, size);
 #endif
 	return result;
 }
