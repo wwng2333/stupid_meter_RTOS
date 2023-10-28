@@ -4,58 +4,93 @@
 #include "lcd_init.h"
 #include "lcdfont.h"
 #include <stdbool.h>
-#include "w25qxx.h"
+//#include "w25qxx.h"
+#include "sfud.h"
 #include <stdio.h>
 #include <string.h>
 
-#define W25_FONT12_START_ADDR 0x110000
+#define W25_FONT12_START_ADDR (uint32_t)0x3FE000
+#define W25_FONT24_START_ADDR (uint32_t)0x3FF000
 
 extern bool __SPI_8bit_mode;
 extern char sprintf_buf[32];
 extern ina226_info_struct ina226_info;
 extern ADC_result_struct ADC_result;
 
-void W25Q_WriteFont(void)
+void W25Q_WriteFont1206(void)
 {
+	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
 	uint32_t start_addr = W25_FONT12_START_ADDR;
-	uint8_t buf_size = sizeof(ascii_1206[0]);
+	uint8_t buf_size = 12;
 	uint8_t buf[buf_size];
-	uint8_t size = sizeof(ascii_1206) / buf_size;
+	uint16_t size = sizeof(ascii_1206) / buf_size;
 	for (uint8_t i = 0; i < size; i++)
 	{
-		printf("[lcdfont]start write %x...\r\n", start_addr);
+		printf("[font]w,0x%x,%d\r\n", start_addr, buf_size);
 		memcpy(buf, ascii_1206[i], buf_size); // read buf from rom
-		W25Q_Write(buf, start_addr, buf_size);
-		printf("[lcdfont]write %x done\r\n", start_addr);
+		sfud_write(flash, start_addr, buf_size, buf);
 		start_addr += buf_size;
 	}
 }
 
-void W25Q_CheckFont(void)
+void W25Q_WriteFont2412(void)
 {
-	uint32_t start_addr = W25_FONT12_START_ADDR;
-	uint8_t buf_size = 1;
+	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
+	uint32_t start_addr = W25_FONT24_START_ADDR;
+	uint8_t buf_size = 48;
 	uint8_t buf[buf_size];
-	uint16_t size = sizeof(ascii_1206) / sizeof(ascii_1206[0][0]);
-	uint8_t err = 0;
-	const unsigned char *p = &ascii_1206[0][0];
+	uint16_t size = sizeof(ascii_2412) / buf_size;
 	for (uint8_t i = 0; i < size; i++)
 	{
-		// printf("[lcdfont]start read %x...\r\n", start_addr);
-		W25Q_Read(buf, start_addr, 1);
-		if(*p == buf[0])
-		{
-			//printf("[lcdfont]%x ok\r\n", start_addr);
-		}
-		else
-		{
-			//printf("[lcdfont]%x err\r\n", start_addr);
-			err++;
-		}
-		p++;
-		start_addr++;
+		printf("[font]w,0x%x, %d\r\n", start_addr, buf_size);
+		memcpy(buf, ascii_2412[i], buf_size); // read buf from rom
+		sfud_write(flash, start_addr, buf_size, buf);
+		start_addr += buf_size;
 	}
-	printf("[lcdfont]full check done, err=%d\r\n", err);
+}
+
+void W25Q_CheckFont1206(void)
+{
+	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
+	uint32_t start_addr = W25_FONT12_START_ADDR;
+	uint8_t buf_size = 12;
+	uint8_t buf[buf_size];
+	uint8_t size = sizeof(ascii_1206) / buf_size;
+	uint16_t result = 0, err = 0;
+	for (uint8_t i = 0; i < size; i++)
+	{
+		sfud_read(flash, start_addr, buf_size, buf);
+		result = strcmp((char *)buf, (char *)ascii_1206[i]);
+		if(result) 
+		{
+			err++;
+			printf("[font]check 0x%x failed=%d\r\n", start_addr, result);
+		}
+		start_addr += buf_size;
+	}
+	printf("[font]full check done, err=%d\r\n", err);
+}
+
+void W25Q_CheckFont2412(void)
+{
+	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
+	uint32_t start_addr = W25_FONT24_START_ADDR;
+	uint8_t buf_size = 48;
+	uint8_t buf[buf_size];
+	uint8_t size = sizeof(ascii_2412) / buf_size;
+	uint16_t result = 0, err = 0;
+	for (uint8_t i = 0; i < size; i++)
+	{
+		sfud_read(flash, start_addr, buf_size, buf);
+		result = strcmp((char *)buf, (char *)ascii_2412[i]);
+		if(result) 
+		{
+			err++;
+			printf("[font]check 0x%x failed=%d\r\n", start_addr, result);
+		}
+		start_addr += buf_size;
+	}
+	printf("[font]full check done, err=%d\r\n", err);
 }
 
 void LCD_ChartPrint(char flag, char unit, struct Queue *queue)
@@ -492,19 +527,31 @@ void LCD_DrawLine(u16 x1, u16 y1, u16 x2, u16 y2, u16 color)
 
 void LCD_ShowChar2416(u16 x, u16 y, u8 num, u16 fc, u16 bc)
 {
+	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
 	u8 sizex, t, m = 0, sizey;
 	u16 i; // ??????????
 	u16 x0 = x;
 	sizex = 16;
 	sizey = 24;
-	// TypefaceNum=48;
-	num = num - ' ';					   // ???????
+	uint8_t buf[48];
+	num = num - 32;					   // ???????
+	
+	if (num)
+	{
+		//W25Q_Read(buf, W25_FONT24_START_ADDR+(num*48), 48);
+		sfud_read(flash, W25_FONT24_START_ADDR+(num*48), 48, buf);
+	} 
+	else //space
+	{
+		memset(buf, 0, 48);
+	}
+	
 	LCD_Address_Set(x, y, x + 15, y + 23); // ??????
 	for (i = 0; i < 48; i++)
 	{
 		for (t = 0; t < 8; t++)
 		{
-			if (ascii_2412[num][i] & (0x01 << t))
+			if (buf[i] & (0x01 << t))
 				LCD_WR_DATA(fc);
 			else
 				LCD_WR_DATA(bc);
@@ -565,6 +612,7 @@ void LCD_ShowCharDot(u16 x, u16 y, u16 fc, u16 bc)
 ******************************************************************************/
 void LCD_ShowChar(u16 x, u16 y, u8 num, u16 fc, u16 bc, u8 sizey, u8 mode)
 {
+	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
 	uint8_t buf[sizey];
 	u8 temp, sizex, t, m = 0;
 	u16 i, TypefaceNum;
@@ -577,7 +625,7 @@ void LCD_ShowChar(u16 x, u16 y, u8 num, u16 fc, u16 bc, u8 sizey, u8 mode)
 	if (sizey == 12 && num)
 	{
 		uint32_t addr = W25_FONT12_START_ADDR+num*12;
-		W25Q_Read(buf, addr, sizey);
+		sfud_read(flash, addr, 12, buf);
 	} 
 	else if (num == 0) //space
 	{

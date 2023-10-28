@@ -1,5 +1,6 @@
 #include "at32f421_wk_config.h"
 #include "w25qxx.h"
+#include "cmsis_os2.h"
 
 //#define __w25qxx_DEBUG
 
@@ -80,7 +81,7 @@ void W25Q_Write(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 	sec_offset = addr % 4096;
 	sec_remain = 4096 - sec_offset;
 #ifdef __w25qxx_DEBUG
-	printf("[25Q]Write addr: 0x%x, size: %d\r\n", addr, size);
+	printf("[25Q]w,0x%x,%d\r\n", addr, size);
 #endif
 	if(size < sec_remain) sec_remain = size;
 	while(1)
@@ -188,7 +189,6 @@ void W25Q_EraseSector(uint32_t addr)
 #endif
 	addr *= 4096;
 	W25Q_EnableWrite();
-	W25Q_Wait();
 	W25Q_CS_Clr();
 	W25Q_ReadWriteByte(W25X_SectorErase);
 	W25Q_ReadWriteByte((uint8_t)(addr >> 16));
@@ -201,7 +201,6 @@ void W25Q_EraseSector(uint32_t addr)
 void W25Q_EraseChip(void)
 {
 	W25Q_EnableWrite();
-	W25Q_Wait();
 	W25Q_CS_Clr();
 	W25Q_ReadWriteByte(W25X_ChipErase);
 	W25Q_CS_Set();
@@ -224,7 +223,10 @@ void W25Q_DisableWrite(void)
 
 void W25Q_Wait(void)
 {
-	while((W25Q_ReadReg(W25X_ReadStatusReg) & 0x01)==0x01);
+	while((W25Q_ReadReg(W25X_ReadStatusReg) & 0x01)==0x01)
+	{
+		//osDelay(10);
+	}
 }
 
 uint8_t W25Q_ReadWriteByte(uint8_t dat)
@@ -258,7 +260,7 @@ void W25Q_Read(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 {
 	uint16_t i;
 #ifdef __w25qxx_DEBUG
-	printf("[25Q]read addr: 0x%x, size: %d...", addr, size);
+	printf("[25Q]r,0x%x,%d,", addr, size);
 #endif
 	W25Q_CS_Clr();
 	W25Q_ReadWriteByte(W25X_ReadData);

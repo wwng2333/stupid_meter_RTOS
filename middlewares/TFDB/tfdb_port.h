@@ -16,8 +16,8 @@
 #ifndef _TFDB_PORT_H_
 #define _TFDB_PORT_H_
 
-#define __TFDB_USE_FLASH
-//#define __TFDB_USE_25QXX
+//#define __TFDB_USE_FLASH
+#define __TFDB_USE_25QXX
 
 /* add headers of your chips */
 #include "stdint.h"

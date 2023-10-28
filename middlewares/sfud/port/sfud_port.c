@@ -39,7 +39,7 @@ typedef struct {
 
 static spi_user_data spi2 = { .spix = SPI2, .cs_gpiox = GPIOA, .cs_gpio_pin = GPIO_PINS_15 };
 
-//static char log_buf[256];
+static char log_buf[256];
 
 void sfud_log_debug(const char *file, const long line, const char *format, ...);
 
@@ -165,7 +165,6 @@ static sfud_err spi_write_read(const sfud_spi *spi, const uint8_t *write_buf, si
             goto exit;
         }
         read_data = spi_i2s_data_receive(spi_dev->spix);
-        /* ???????????,??? SPI ??????????? */
         if (i >= write_size) {
             *read_buf++ = read_data;
         }
@@ -237,15 +236,15 @@ sfud_err sfud_spi_port_init(sfud_flash *flash) {
  * @param ... args
  */
 void sfud_log_debug(const char *file, const long line, const char *format, ...) {
-//    va_list args;
+    va_list args;
 
-//    /* args point to the first variable parameter */
-//    va_start(args, format);
-//    printf("[SFUD](%s:%ld) ", file, line);
-//    /* must use vprintf to print */
-//    vsnprintf(log_buf, sizeof(log_buf), format, args);
-//    printf("%s\n", log_buf);
-//    va_end(args);
+    /* args point to the first variable parameter */
+    va_start(args, format);
+    printf("[SFUD](%s:%ld) ", file, line);
+    /* must use vprintf to print */
+    vsnprintf(log_buf, sizeof(log_buf), format, args);
+    printf("%s\n", log_buf);
+    va_end(args);
 }
 
 /**
@@ -255,13 +254,13 @@ void sfud_log_debug(const char *file, const long line, const char *format, ...) 
  * @param ... args
  */
 void sfud_log_info(const char *format, ...) {
-//    va_list args;
+    va_list args;
 
-//    /* args point to the first variable parameter */
-//    va_start(args, format);
-//    printf("[SFUD]");
-//    /* must use vprintf to print */
-//    vsnprintf(log_buf, sizeof(log_buf), format, args);
-//    printf("%s\n", log_buf);
-//    va_end(args);
+    /* args point to the first variable parameter */
+    va_start(args, format);
+    printf("[SFUD]");
+    /* must use vprintf to print */
+    vsnprintf(log_buf, sizeof(log_buf), format, args);
+    printf("%s\n", log_buf);
+    va_end(args);
 }

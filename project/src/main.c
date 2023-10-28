@@ -22,7 +22,7 @@
  *
  **************************************************************************
  */
-#define __ENABLE_EventRecorder
+//#define __ENABLE_EventRecorder
 //#define __ENABLE_EasyFlash
 #define __ENABLE_TFDB
 /* add user code end Header */
@@ -45,8 +45,9 @@
 #endif
 #ifdef __ENABLE_TFDB
 #include "tinyflashdb.h"
-#include "w25qxx.h"
 #endif
+#include "w25qxx.h"
+#include "sfud.h"
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
 
@@ -403,9 +404,16 @@ void app_main(void *arg)
 #ifdef __ENABLE_TFDB
 	tfdb_update_boot_time();
 #endif
-	
-	//W25Q_WriteFont();
-	//W25Q_CheckFont();
+
+	//osKernelLock();
+	W25Q_EraseChip();
+	sfud_init();
+	W25Q_WriteFont1206();
+	W25Q_WriteFont2412();
+//	W25Q_DisableWrite();
+//	W25Q_CheckFont1206();
+//	W25Q_CheckFont2412();
+	//osKernelUnlock();
 	
 	INA226_Init();
 	LCD_Init();
@@ -467,6 +475,7 @@ int main(void)
 	osKernelStart();
 	/* add user code end 2 */
 
+	
 	while (1)
 	{
 		/* add user code begin 3 */

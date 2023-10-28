@@ -4,8 +4,10 @@
 #include "at32f421_wk_config.h"
 #include "Queue.h"
 
-void W25Q_WriteFont(void);
-void W25Q_CheckFont(void);
+void W25Q_WriteFont1206(void);
+void W25Q_WriteFont2412(void);
+void W25Q_CheckFont1206(void);
+void W25Q_CheckFont2412(void);
 
 void LCD_ChartPrint(char flag, char unit, struct Queue* queue);
 
