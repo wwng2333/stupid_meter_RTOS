@@ -77,7 +77,7 @@ void W25Q_Write(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 	sec_pos = addr / 4096;
 	sec_offset = addr % 4096;
 	sec_remain = 4096 - sec_offset;
-	SEGGER_RTT_printf(0, "[25Q]Write 1st addr: 0x%x, size: %d\r\n", addr, size);
+	printf("[25Q]Write addr: 0x%x, size: %d\r\n", addr, size);
 	if(size < sec_remain) sec_remain = size;
 	while(1)
 	{
@@ -99,7 +99,7 @@ void W25Q_Write(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 		{
 			W25Q_NoCheckWrite(pBuffer, addr, sec_remain);
 		}
-		if(size == sec_remain) // write done.
+		if(size == sec_remain) // write ok.
 		{
 			break;
 		}
@@ -120,7 +120,7 @@ void W25Q_Write(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 			}
 		}
 	}
-	SEGGER_RTT_printf(0, "[25Q]W25Q32 write finish!\r\n");
+	printf("[25Q]Write ok\r\n");
 }
 
 void W25Q_NoCheckWrite(uint8_t* pBuffer, uint32_t addr, uint16_t size)
@@ -154,7 +154,7 @@ void W25Q_NoCheckWrite(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 
 void W25Q_WritePage(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 {
-	SEGGER_RTT_printf(0, "[25Q]WritePage addr: 0x%x\r\n", addr);
+	printf("[25Q]WritePage addr: 0x%x...", addr);
 	uint16_t i;
 	W25Q_EnableWrite();
 	W25Q_CS_Clr();
@@ -168,11 +168,12 @@ void W25Q_WritePage(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 	}
 	W25Q_CS_Set();
 	W25Q_Wait();
+	printf("ok\r\n");
 }
 
 void W25Q_EraseSector(uint32_t addr)
 {
-	SEGGER_RTT_printf(0, "[25Q]EraseSector addr: 0x%x\r\n", addr);
+	printf("[25Q]EraseSector addr: 0x%x\r\n", addr);
 	addr *= 4096;
 	W25Q_EnableWrite();
 	W25Q_Wait();
@@ -244,6 +245,7 @@ uint16_t W25Q_ReadReg(uint8_t addr)
 void W25Q_Read(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 {
 	uint16_t i;
+	printf("[25Q]read addr: 0x%x, size: %d...", addr, size);
 	W25Q_CS_Clr();
 	W25Q_ReadWriteByte(W25X_ReadData);
 	W25Q_ReadWriteByte((uint8_t)(addr >> 16));
@@ -254,4 +256,5 @@ void W25Q_Read(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 		pBuffer[i] = W25Q_ReadWriteByte(0xFF);
 	}
 	W25Q_CS_Set();
+	printf("ok\r\n");
 }

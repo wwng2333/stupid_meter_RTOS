@@ -4,6 +4,9 @@
 #include "at32f421_wk_config.h"
 #include "Queue.h"
 
+void W25Q_WriteFont(void);
+void W25Q_CheckFont(void);
+
 void LCD_ChartPrint(char flag, char unit, struct Queue* queue);
 
 void LCD_Fill(u16 xsta,u16 ysta,u16 xend,u16 yend,u16 color);//指定区域填充颜色

@@ -5,7 +5,7 @@
 #include "cmsis_os2.h"
 #include <stdbool.h>
 
-extern screen_direction_enum screen_direction;  //设置横屏或者竖屏显示 0或1为竖屏 2或3为横屏
+extern screen_direction_enum screen_direction;
 extern bool __SPI_8bit_mode;
 
 /**
