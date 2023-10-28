@@ -67,6 +67,8 @@ const tfdb_index_t boot_time_index = {
     .flash_addr = 0x4000,
 	#elif defined __TFDB_USE_FLASH
     .flash_addr = 0x800FF00,
+	#elif defined __TFDB_USE_SFUD
+    .flash_addr = 0x4000,
 	#endif
     .flash_size = 256,
     .value_length = 1,
@@ -92,7 +94,6 @@ void tfdb_update_boot_time(void)
 	{
 			printf("set ok, addr:%x\n", addr);
 	}
-
 }
 #endif
 /* add user code end private define */
@@ -395,19 +396,18 @@ void ADC_timer_cb(void)
 
 void app_main(void *arg)
 {
+	sfud_init();
 #ifdef __ENABLE_EasyFlash
 	if (easyflash_init() == EF_NO_ERR) {
 			test_env();
 	} 
 #endif
-
 #ifdef __ENABLE_TFDB
 	tfdb_update_boot_time();
 #endif
 
 	//osKernelLock();
-	W25Q_EraseChip();
-	sfud_init();
+	//W25Q_EraseChip();
 	W25Q_WriteFont1206();
 	W25Q_WriteFont2412();
 //	W25Q_DisableWrite();

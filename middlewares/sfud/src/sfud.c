@@ -114,8 +114,8 @@ sfud_err sfud_init(void) {
     sfud_err cur_flash_result = SFUD_SUCCESS, all_flash_result = SFUD_SUCCESS;
     size_t i;
 
-    SFUD_DEBUG("Start initialize Serial Flash Universal Driver(SFUD) V%s.", SFUD_SW_VERSION);
-    SFUD_DEBUG("You can get the latest version on https://github.com/armink/SFUD .");
+    SFUD_DEBUG("Start (SFUD) V%s.", SFUD_SW_VERSION);
+    //SFUD_DEBUG("You can get the latest version on https://github.com/armink/SFUD .");
     /* initialize all flash device in flash device table */
     for (i = 0; i < sizeof(flash_table) / sizeof(sfud_flash); i++) {
         /* initialize flash device index of flash device information table */

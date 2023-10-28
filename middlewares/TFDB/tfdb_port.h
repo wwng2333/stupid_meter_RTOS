@@ -17,7 +17,8 @@
 #define _TFDB_PORT_H_
 
 //#define __TFDB_USE_FLASH
-#define __TFDB_USE_25QXX
+//#define __TFDB_USE_25QXX
+#define __TFDB_USE_SFUD
 
 /* add headers of your chips */
 #include "stdint.h"
@@ -65,6 +66,8 @@ typedef enum
 #define TFDB_VALUE_AFTER_ERASE_SIZE         1
 #elif defined __TFDB_USE_FLASH
 #define TFDB_VALUE_AFTER_ERASE_SIZE         1
+#elif defined __TFDB_USE_SFUD
+#define TFDB_VALUE_AFTER_ERASE_SIZE         1
 #endif
 
 /* the flash write granularity, unit: byte
@@ -74,6 +77,8 @@ typedef enum
 #define TFDB_WRITE_UNIT_BYTES         1 /* @note you must define it for a value */
 #elif defined __TFDB_USE_FLASH
 #define TFDB_WRITE_UNIT_BYTES         2
+#elif defined __TFDB_USE_SFUD
+#define TFDB_WRITE_UNIT_BYTES         1
 #endif
 
 #if TFDB_VALUE_AFTER_ERASE_SIZE > TFDB_WRITE_UNIT_BYTES
