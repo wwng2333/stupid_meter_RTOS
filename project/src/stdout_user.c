@@ -31,7 +31,7 @@
    POSSIBILITY OF SUCH DAMAGE.
    ---------------------------------------------------------------------------*/
  
-#include "SEGGER_RTT.h"
+#include "at32f421_wk_config.h"
 
 /**
   Put a character to the stdout
@@ -39,6 +39,8 @@
   \param[in]   ch  Character to output
   \return          The character written, or -1 on write error.
 */
-int stdout_putchar (int ch) {
-  return SEGGER_RTT_PutChar(0, ch);
+void stdout_putchar (int ch) {
+  //return SEGGER_RTT_PutChar(0, ch);
+	//usart_data_transmit(USART1, (uint16_t)ch);
+	USART1->dt = ch;
 }

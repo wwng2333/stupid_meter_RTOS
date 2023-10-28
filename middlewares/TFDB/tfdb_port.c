@@ -39,7 +39,7 @@ TFDB_Err_Code tfdb_port_read(tfdb_addr_t addr, uint8_t *buf, size_t size)
 	flash_read(addr, (uint16_t *)buf, size);
 #elif defined __TFDB_USE_SFUD
 	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
-	result = sfud_read(flash, addr, size, buf);
+	sfud_read(flash, addr, size, buf);
 #endif
 	return result;
 }
@@ -57,7 +57,7 @@ TFDB_Err_Code tfdb_port_erase(tfdb_addr_t addr, size_t size)
 	/* You can add your code under here. */
 #if defined __TFDB_USE_SFUD
 	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
-	result = sfud_erase(flash, addr, size);
+	sfud_erase(flash, addr, size);
 #endif
 	return result;
 }
@@ -86,7 +86,7 @@ TFDB_Err_Code tfdb_port_write(tfdb_addr_t addr, const uint8_t *buf, size_t size)
 	flash_write(addr, (uint16_t *)buf, size);
 #elif defined __TFDB_USE_SFUD
 	const sfud_flash *flash = sfud_get_device_table() + SFUD_W25Q32BV_DEVICE_INDEX;
-	result = sfud_write(flash, addr, size, buf);
+	sfud_write(flash, addr, size, buf);
 #endif
 	return result;
 }

@@ -59,7 +59,7 @@ extern "C" {
 /*#define ERTC_MODULE_ENABLED---------------------*/
 #define GPIO_MODULE_ENABLED
 /*#define I2C_MODULE_ENABLED----------------------*/
-/*#define USART_MODULE_ENABLED--------------------*/
+#define USART_MODULE_ENABLED
 #define PWC_MODULE_ENABLED
 #define ADC_MODULE_ENABLED
 #define SPI_MODULE_ENABLED

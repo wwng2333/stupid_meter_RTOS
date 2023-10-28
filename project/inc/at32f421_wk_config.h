@@ -108,6 +108,7 @@ void wk_nvic_config(void);
 void wk_gpio_config(void);
 void wk_dma1_channel1_init(void);
 void wk_adc1_init(void);
+void wk_usart1_init(void);
 void ADC_timer_cb(void);
 void menu_2nd_display(void);
 void menu_statistics_display(void);

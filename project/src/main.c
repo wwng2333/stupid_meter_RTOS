@@ -464,7 +464,8 @@ int main(void)
 
 	/* config LCD screen. */
 	LCD_SPI1_init();
-	W25Q_SPI2_Init();
+	//W25Q_SPI2_Init();
+	wk_usart1_init();
 
 	/* add user code begin 2 */
 	osKernelInitialize();
