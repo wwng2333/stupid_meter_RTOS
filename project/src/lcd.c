@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include "w25qxx.h"
 #include <stdio.h>
+#include <string.h>
+
+#define W25_FONT12_START_ADDR 0x110000
 
 extern bool __SPI_8bit_mode;
 extern char sprintf_buf[32];
@@ -14,47 +17,45 @@ extern ADC_result_struct ADC_result;
 
 void W25Q_WriteFont(void)
 {
-	uint32_t start_addr = 0x100000;
-	uint8_t buf[12] = {0};
-	uint8_t size = sizeof(ascii_1206) / sizeof(ascii_1206[0]);
+	uint32_t start_addr = W25_FONT12_START_ADDR;
+	uint8_t buf_size = sizeof(ascii_1206[0]);
+	uint8_t buf[buf_size];
+	uint8_t size = sizeof(ascii_1206) / buf_size;
 	for (uint8_t i = 0; i < size; i++)
 	{
 		printf("[lcdfont]start write %x...\r\n", start_addr);
-		for (uint8_t j = 0; j < 12; j++)
-		{
-			buf[j] = ascii_1206[i][j];
-		} // read buf from rom
-		W25Q_Write(buf, start_addr, 12);
+		memcpy(buf, ascii_1206[i], buf_size); // read buf from rom
+		W25Q_Write(buf, start_addr, buf_size);
 		printf("[lcdfont]write %x done\r\n", start_addr);
-		start_addr += 12;
+		start_addr += buf_size;
 	}
 }
 
 void W25Q_CheckFont(void)
 {
-	uint32_t start_addr = 0x100000;
-	uint8_t buf[12] = {0};
-	uint8_t size = sizeof(ascii_1206) / sizeof(ascii_1206[0]);
+	uint32_t start_addr = W25_FONT12_START_ADDR;
+	uint8_t buf_size = 1;
+	uint8_t buf[buf_size];
+	uint16_t size = sizeof(ascii_1206) / sizeof(ascii_1206[0][0]);
+	uint8_t err = 0;
+	const unsigned char *p = &ascii_1206[0][0];
 	for (uint8_t i = 0; i < size; i++)
 	{
 		// printf("[lcdfont]start read %x...\r\n", start_addr);
-		W25Q_Read(buf, start_addr, 12);
-		for (uint8_t j = 0; j < 12; j++)
+		W25Q_Read(buf, start_addr, 1);
+		if(*p == buf[0])
 		{
-			if (buf[j] == ascii_1206[i][j])
-			{
-				continue;
-			}
-			else
-			{
-				printf("[lcdfont]%x err!\r\n", start_addr + j);
-				break;
-			}
-		} // read buf from rom
-		printf("[lcdfont]check %x ok\r\n", start_addr);
-		start_addr += 12;
+			//printf("[lcdfont]%x ok\r\n", start_addr);
+		}
+		else
+		{
+			//printf("[lcdfont]%x err\r\n", start_addr);
+			err++;
+		}
+		p++;
+		start_addr++;
 	}
-	printf("[lcdfont]full check ok\r\n");
+	printf("[lcdfont]full check done, err=%d\r\n", err);
 }
 
 void LCD_ChartPrint(char flag, char unit, struct Queue *queue)
@@ -564,17 +565,32 @@ void LCD_ShowCharDot(u16 x, u16 y, u16 fc, u16 bc)
 ******************************************************************************/
 void LCD_ShowChar(u16 x, u16 y, u8 num, u16 fc, u16 bc, u8 sizey, u8 mode)
 {
+	uint8_t buf[sizey];
 	u8 temp, sizex, t, m = 0;
 	u16 i, TypefaceNum;
 	u16 x0 = x;
 	sizex = sizey / 2;
 	TypefaceNum = (sizex / 8 + ((sizex % 8) ? 1 : 0)) * sizey;
-	num = num - ' ';
+	num = num - 32;
 	LCD_Address_Set(x, y, x + sizex - 1, y + sizey - 1);
+	
+	if (sizey == 12 && num)
+	{
+		uint32_t addr = W25_FONT12_START_ADDR+num*12;
+		W25Q_Read(buf, addr, sizey);
+	} 
+	else if (num == 0) //space
+	{
+		memset(buf, 0, sizey);
+	}
+	
 	for (i = 0; i < TypefaceNum; i++)
 	{
 		if (sizey == 12)
-			temp = ascii_1206[num][i];
+		{
+			temp = buf[i];
+			//temp = ascii_1206[num][i];
+		}
 		else if (sizey == 16)
 			temp = ascii_1608[num][i];
 		else if (sizey == 24)

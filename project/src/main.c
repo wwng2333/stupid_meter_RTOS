@@ -22,7 +22,7 @@
  *
  **************************************************************************
  */
-//#define __ENABLE_EventRecorder
+#define __ENABLE_EventRecorder
 //#define __ENABLE_EasyFlash
 #define __ENABLE_TFDB
 /* add user code end Header */
@@ -404,8 +404,8 @@ void app_main(void *arg)
 	tfdb_update_boot_time();
 #endif
 	
-	W25Q_WriteFont();
-	W25Q_CheckFont();
+	//W25Q_WriteFont();
+	//W25Q_CheckFont();
 	
 	INA226_Init();
 	LCD_Init();

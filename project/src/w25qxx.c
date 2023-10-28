@@ -1,6 +1,8 @@
 #include "at32f421_wk_config.h"
 #include "w25qxx.h"
 
+//#define __w25qxx_DEBUG
+
 uint8_t W25Q_Buffer[4096] = {0};
 
 void W25Q_SPI2_Init(void)
@@ -77,7 +79,9 @@ void W25Q_Write(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 	sec_pos = addr / 4096;
 	sec_offset = addr % 4096;
 	sec_remain = 4096 - sec_offset;
+#ifdef __w25qxx_DEBUG
 	printf("[25Q]Write addr: 0x%x, size: %d\r\n", addr, size);
+#endif
 	if(size < sec_remain) sec_remain = size;
 	while(1)
 	{
@@ -120,7 +124,9 @@ void W25Q_Write(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 			}
 		}
 	}
+#ifdef __w25qxx_DEBUG
 	printf("[25Q]Write ok\r\n");
+#endif
 }
 
 void W25Q_NoCheckWrite(uint8_t* pBuffer, uint32_t addr, uint16_t size)
@@ -154,7 +160,9 @@ void W25Q_NoCheckWrite(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 
 void W25Q_WritePage(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 {
+#ifdef __w25qxx_DEBUG
 	printf("[25Q]WritePage addr: 0x%x...", addr);
+#endif
 	uint16_t i;
 	W25Q_EnableWrite();
 	W25Q_CS_Clr();
@@ -168,12 +176,16 @@ void W25Q_WritePage(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 	}
 	W25Q_CS_Set();
 	W25Q_Wait();
+#ifdef __w25qxx_DEBUG
 	printf("ok\r\n");
+#endif
 }
 
 void W25Q_EraseSector(uint32_t addr)
 {
+#ifdef __w25qxx_DEBUG
 	printf("[25Q]EraseSector addr: 0x%x\r\n", addr);
+#endif
 	addr *= 4096;
 	W25Q_EnableWrite();
 	W25Q_Wait();
@@ -245,7 +257,9 @@ uint16_t W25Q_ReadReg(uint8_t addr)
 void W25Q_Read(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 {
 	uint16_t i;
+#ifdef __w25qxx_DEBUG
 	printf("[25Q]read addr: 0x%x, size: %d...", addr, size);
+#endif
 	W25Q_CS_Clr();
 	W25Q_ReadWriteByte(W25X_ReadData);
 	W25Q_ReadWriteByte((uint8_t)(addr >> 16));
@@ -256,5 +270,7 @@ void W25Q_Read(uint8_t* pBuffer, uint32_t addr, uint16_t size)
 		pBuffer[i] = W25Q_ReadWriteByte(0xFF);
 	}
 	W25Q_CS_Set();
+#ifdef __w25qxx_DEBUG
 	printf("ok\r\n");
+#endif
 }
