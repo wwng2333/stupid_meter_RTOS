@@ -22,9 +22,9 @@
  *
  **************************************************************************
  */
-//#define __ENABLE_EventRecorder
-//#define __ENABLE_EasyFlash
-#define __ENABLE_TFDB
+#define __ENABLE_EventRecorder 0
+#define __ENABLE_EasyFlash 0
+#define __ENABLE_TFDB 1
 /* add user code end Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -36,14 +36,14 @@
 #include "lcd.h"
 #include "lcd_init.h"
 #include <stdbool.h>
-#ifdef __ENABLE_EventRecorder
+#if __ENABLE_EventRecorder
 #include "EventRecorder.h"
 #endif
-#ifdef __ENABLE_EasyFlash
+#if __ENABLE_EasyFlash
 #include "sfud.h"
 #include <easyflash.h>
 #endif
-#ifdef __ENABLE_TFDB
+#if __ENABLE_TFDB
 #include "tinyflashdb.h"
 #endif
 //#include "w25qxx.h"
@@ -61,7 +61,7 @@
 
 /* private define ------------------------------------------------------------*/
 /* add user code begin private define */
-#ifdef __ENABLE_TFDB
+#if __ENABLE_TFDB
 const tfdb_index_t boot_time_index = {
     .end_byte = 0x00,
 	#ifdef __TFDB_USE_25QXX
@@ -78,52 +78,28 @@ tfdb_addr_t addr = 0;
 uint8_t test_buf[TFDB_ALIGNED_RW_BUFFER_SIZE(2,1)];
 uint16_t boot_time;
 
-#if MFBD_USE_TINY_BUTTON
-MFBD_TBTN_DEFINE(test_tbtn, 1, 10, 0x1201, 0x1200);
-MFBD_TBTN_ARRAYLIST(test_tbtn_list, &test_tbtn);
+#if MFBD_USE_NORMAL_BUTTON
+MFBD_NBTN_DEFINE(test_nbtn, 0, 3, 30, 100, 0x1301, 0x1300, 0x1302);
+MFBD_NBTN_ARRAYLIST(test_nbtn_list, &test_nbtn);
 uint8_t mfbd_btn_check(mfbd_btn_index_t btn_index);
-void mfbd_btn_value_report(mfbd_btn_code_t btn_value);
+void mfbd_btn_callback(mfbd_btn_code_t btn_value);
 
 const mfbd_group_t test_btn_group = {
     mfbd_btn_check,
-    mfbd_btn_value_report,
-		test_tbtn_list,
-#if MFBD_PARAMS_SAME_IN_GROUP
-
-#if MFBD_USE_TINY_BUTTON || MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON
-    3,
-#endif /*  MFBD_USE_TINY_BUTTON || MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON */
-
-#if MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON
-    30,
-    150,
-#endif /* MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON */
-
-#if MFBD_USE_MULTIFUCNTION_BUTTON
-    75,
-#endif /* MFBD_USE_MULTIFUCNTION_BUTTON */
-
-#endif /*MFBD_PARAMS_SAME_IN_GROUP*/
+    mfbd_btn_callback,
+		test_nbtn_list,
 };
+
 uint8_t mfbd_btn_check(mfbd_btn_index_t btn_index)
 {
-	switch (btn_index)
+	if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
 	{
-	case 1:
-			if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
-			{
-					return MFBD_BTN_STATE_DOWN;
-			}
-			break;
-	default:
-			break;
+		return MFBD_BTN_STATE_DOWN;
+	}	
+	else
+	{
+		return MFBD_BTN_STATE_UP;
 	}
-	return MFBD_BTN_STATE_UP;
-}
-
-void mfbd_btn_value_report(mfbd_btn_code_t btn_value)
-{
-	printf("[mfbd]0x%04x\n", btn_value);
 }
 
 #endif /* MFBD_USE_TINY_BUTTON */
@@ -181,6 +157,33 @@ char sprintf_buf[32] = {0};
 
 __IO bool __SPI_8bit_mode;
 
+	
+void mfbd_btn_callback(mfbd_btn_code_t btn_value)
+{
+	printf("[mfbd]0x%04x\n", btn_value);
+	switch(btn_value)
+	{
+		case 0x1301	: // short press
+			if (menu_state != menu_2nd_menu)
+				menu_state++;
+			else
+				menu_state = menu_default;
+			break;
+		case 0x1302: // long press
+			if (screen_direction == SCREEN_HORIZONTAL_REVERSED)
+				screen_direction = SCREEN_HORIZONTAL;
+			else
+				screen_direction = SCREEN_HORIZONTAL_REVERSED;
+			LCD_Init_Swap();
+			break;
+		default: 
+			return;
+			break;
+	}
+	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
+	osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
+}
+
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
@@ -202,7 +205,7 @@ static const osThreadAttr_t ThreadAttr_key_scan =
 	{
 		.name = "key_scan",
 		.priority = (osPriority_t)osPriorityRealtime,
-		.stack_size = 256};
+		.stack_size = 384};
 
 static const osThreadAttr_t ThreadAttr_LCD_Update =
 	{
@@ -218,7 +221,7 @@ static const osTimerAttr_t timerAttr_lcd_cb = {
 	.name = "LCD_timer0",
 };
 
-#ifdef __ENABLE_EasyFlash
+#if __ENABLE_EasyFlash
 /**
  * Env demo.
  */
@@ -246,7 +249,7 @@ __NO_RETURN void key_scan_thread1(void *arg)
 {
 	for (;;)
 	{
-#ifdef MFBD_USE_TINY_BUTTON
+#ifdef MFBD_USE_NORMAL_BUTTON
 		mfbd_group_scan(&test_btn_group);
 #else
 		if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
@@ -453,12 +456,12 @@ void ADC_timer_cb(void)
 void app_main(void *arg)
 {
 	sfud_init();
-#ifdef __ENABLE_EasyFlash
+#if __ENABLE_EasyFlash
 	if (easyflash_init() == EF_NO_ERR) {
 			test_env();
 	} 
 #endif
-#ifdef __ENABLE_TFDB
+#if __ENABLE_TFDB
 	tfdb_update_boot_time();
 #endif
 
@@ -499,7 +502,7 @@ int main(void)
 	/* system clock config. */
 	wk_system_clock_config();
 	// delay_init();
-#ifdef __ENABLE_EventRecorder
+#if __ENABLE_EventRecorder
 	EventRecorderInitialize(EventRecordAll, 10U);
 	EventRecorderStart();
 #endif

@@ -343,7 +343,7 @@
 //   <e>Global Initialization
 //   <i> Initialize Event Recorder during 'osKernelInitialize'.
 #ifndef OS_EVR_INIT
-#define OS_EVR_INIT                 0
+#define OS_EVR_INIT                 1
 #endif
  
 //     <q>Start recording
@@ -397,7 +397,7 @@
 //         <o.3>Detailed operation events
 //       </e>
 #ifndef OS_EVR_THREAD_LEVEL
-#define OS_EVR_THREAD_LEVEL         0x85U
+#define OS_EVR_THREAD_LEVEL         0x8FU
 #endif
  
 //       <e.7>Generic Wait

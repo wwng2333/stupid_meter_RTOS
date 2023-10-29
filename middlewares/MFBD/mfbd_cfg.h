@@ -97,7 +97,7 @@
     #define MFBD_USE_TINY_BUTTON                1
 #else
     /* if you are not use mfbd in rt-thread, you can change this instead. */
-    #define MFBD_USE_TINY_BUTTON                1
+    #define MFBD_USE_TINY_BUTTON                0
 #endif
 
 /* set MFBD_USE_NORMAL_BUTTON to 1 will enable normal button functions. */
@@ -105,7 +105,7 @@
     #define MFBD_USE_NORMAL_BUTTON              1
 #else
     /* if you are not use mfbd in rt-thread, you can change this instead. */
-    #define MFBD_USE_NORMAL_BUTTON              0
+    #define MFBD_USE_NORMAL_BUTTON              1
 #endif
 
 /* set MFBD_USE_MULTIFUCNTION_BUTTON to 1 will enable multifunction button functions. */
