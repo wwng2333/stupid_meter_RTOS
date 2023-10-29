@@ -3,7 +3,7 @@
 #include "Queue.h"
 #include "lcd_init.h"
 #include "lcdfont.h"
-#include <stdbool.h>
+//#include <stdbool.h>
 //#include "w25qxx.h"
 #include "sfud.h"
 #include <stdio.h>
@@ -14,7 +14,7 @@
 
 #pragma clang optimize off
 
-extern bool __SPI_8bit_mode;
+extern uint8_t __SPI_8bit_mode;
 extern char sprintf_buf[32];
 extern ina226_info_struct ina226_info;
 extern ADC_result_struct ADC_result;

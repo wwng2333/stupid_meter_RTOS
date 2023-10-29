@@ -35,7 +35,7 @@
 #include "Queue.h"
 #include "lcd.h"
 #include "lcd_init.h"
-#include <stdbool.h>
+//#include <stdbool.h>
 #if __ENABLE_EventRecorder
 #include "EventRecorder.h"
 #endif
@@ -155,7 +155,7 @@ uint8_t SavedPoint[SIZE] = {0};
 uint32_t i2c_last_tick;
 char sprintf_buf[32] = {0};
 
-__IO bool __SPI_8bit_mode;
+__IO uint8_t __SPI_8bit_mode;
 	
 void mfbd_btn_callback(mfbd_btn_code_t btn_value)
 {

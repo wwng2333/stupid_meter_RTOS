@@ -3,10 +3,10 @@
 #include "lcd.h"
 #include "delay.h"
 #include "cmsis_os2.h"
-#include <stdbool.h>
+//#include <stdbool.h>
 
 extern screen_direction_enum screen_direction;
-extern bool __SPI_8bit_mode;
+extern uint8_t __SPI_8bit_mode;
 
 #pragma clang optimize off
 
