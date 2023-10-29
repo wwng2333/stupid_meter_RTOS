@@ -111,7 +111,7 @@ void tfdb_update_boot_time(void)
 	result = tfdb_get(&boot_time_index, test_buf, &addr, &boot_time);
 	if(result == TFDB_NO_ERR)
 	{
-			printf("get ok, addr:%x, value:%x\n", addr, boot_time);
+			printf("[boot]get ok, addr:0x%x, value:0x%x\n", addr, boot_time);
 	}	
 	
 	boot_time++;
@@ -119,7 +119,7 @@ void tfdb_update_boot_time(void)
 	result = tfdb_set(&boot_time_index, test_buf, &addr, &boot_time);
 	if(result == TFDB_NO_ERR)
 	{
-			printf("set ok, addr:%x\n", addr);
+			printf("[boot]set ok, addr:0x%x\n", addr);
 	}
 }
 #endif

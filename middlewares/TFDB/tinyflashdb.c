@@ -27,7 +27,7 @@ TFDB_Err_Code tfdb_check(const tfdb_index_t *index, uint8_t *rw_buffer)
 {
     TFDB_Err_Code result;
 
-    TFDB_DEBUG("tfdb_check >\n");
+    TFDB_DEBUG("tfdb_check=>");
 #if (TFDB_WRITE_UNIT_BYTES==8)
     /* flash_size / value_len / end_byte */
     result = tfdb_port_read(index->flash_addr, rw_buffer, 8);
@@ -70,7 +70,7 @@ TFDB_Err_Code tfdb_init(const tfdb_index_t *index, uint8_t *rw_buffer)
 {
     TFDB_Err_Code result = TFDB_NO_ERR;
 
-    TFDB_DEBUG("tfdb_init >\n");
+    TFDB_DEBUG("tfdb_init=>\n");
 
     result = tfdb_port_erase(index->flash_addr, index->flash_size);
     if (result != TFDB_NO_ERR)
@@ -133,7 +133,7 @@ TFDB_Err_Code tfdb_set(const tfdb_index_t *index, uint8_t *rw_buffer, tfdb_addr_
     uint32_t max_retry = 0;
 #endif
 
-    TFDB_DEBUG("tfdb_set >\n");
+    TFDB_DEBUG("tfdb_set=>");
 
     aligned_value_size  = index->value_length + 2;/* data + verify + end_byte */
 
@@ -147,7 +147,7 @@ TFDB_Err_Code tfdb_set(const tfdb_index_t *index, uint8_t *rw_buffer, tfdb_addr_
     /* aligned with TFDB_WRITE_UNIT_BYTES */
     aligned_value_size = ((aligned_value_size + 7) & 0xf8);
 #endif
-    TFDB_DEBUG("aigned size:%d\n", aligned_value_size);
+    TFDB_DEBUG("aigned size:%d, ", aligned_value_size);
 
     if (addr_cache == NULL)
     {
@@ -203,7 +203,7 @@ start:
                 goto init;
             }
             /* find the addr success */
-            TFDB_DEBUG("    find success\n");
+            TFDB_DEBUG(", find success\n");
 set:
             /* calculate sum verify */
             sum_verify_byte = 0;
@@ -294,12 +294,12 @@ init:
         else
         {
             /* addr_cache is set */
-            TFDB_DEBUG("    addr_cache is set\n");
+            TFDB_DEBUG("addr_cache is set\n");
             find_addr = *addr_cache + aligned_value_size;
             if (find_addr > (index->flash_addr + index->flash_size - aligned_value_size))
             {
                 /* the flash is fill */
-                TFDB_DEBUG("    the flash is fill\n");
+                TFDB_DEBUG("the flash is fill\n");
                 goto init;
             }
             else
@@ -330,7 +330,7 @@ TFDB_Err_Code tfdb_get(const tfdb_index_t *index, uint8_t *rw_buffer, tfdb_addr_
     uint8_t aligned_value_size;
     uint8_t sum_verify_byte;
     uint8_t i;
-    TFDB_DEBUG("tfdb_get >\n");
+    TFDB_DEBUG("tfdb_get=>");
 
     aligned_value_size  = index->value_length + 2;/* data + verify + end_byte */
 
@@ -344,7 +344,7 @@ TFDB_Err_Code tfdb_get(const tfdb_index_t *index, uint8_t *rw_buffer, tfdb_addr_
     /* aligned with TFDB_WRITE_UNIT_BYTES */
     aligned_value_size = ((aligned_value_size + 7) & 0xf8);
 #endif
-    TFDB_DEBUG("aigned size:%d\n", aligned_value_size);
+    TFDB_DEBUG("aigned size:%d, ", aligned_value_size);
 
     if (addr_cache == NULL)
     {
