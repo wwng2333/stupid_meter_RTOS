@@ -12,6 +12,8 @@
 #define W25_FONT12_START_ADDR (uint32_t)0x3FE000
 #define W25_FONT24_START_ADDR (uint32_t)0x3FF000
 
+#pragma clang optimize off
+
 extern bool __SPI_8bit_mode;
 extern char sprintf_buf[32];
 extern ina226_info_struct ina226_info;
@@ -792,3 +794,5 @@ void LCD_ShowString(u16 x, u16 y, char *p, u16 fc, u16 bc, u8 sizey, u8 mode)
 //		}
 //	}
 // }
+
+#pragma clang optimize on

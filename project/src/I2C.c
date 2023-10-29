@@ -5,14 +5,16 @@
 extern ina226_info_struct ina226_info;
 
 //#define __Crazy_DEBUG
+#pragma clang optimize off
 void I2C_Delay(void)
 {
    __IO uint8_t i;
   for (i = 0; i < 100; i++)
 	{
-		__asm volatile("");
+		;
 	}
 }
+#pragma clang optimize on
 
 void INA226_Update(void)
 {

@@ -46,8 +46,9 @@
 #ifdef __ENABLE_TFDB
 #include "tinyflashdb.h"
 #endif
-#include "w25qxx.h"
+//#include "w25qxx.h"
 #include "sfud.h"
+#include "mfbd.h"
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
 
@@ -76,6 +77,56 @@ const tfdb_index_t boot_time_index = {
 tfdb_addr_t addr = 0;
 uint8_t test_buf[TFDB_ALIGNED_RW_BUFFER_SIZE(2,1)];
 uint16_t boot_time;
+
+#if MFBD_USE_TINY_BUTTON
+MFBD_TBTN_DEFINE(test_tbtn, 1, 10, 0x1201, 0x1200);
+MFBD_TBTN_ARRAYLIST(test_tbtn_list, &test_tbtn);
+uint8_t mfbd_btn_check(mfbd_btn_index_t btn_index);
+void mfbd_btn_value_report(mfbd_btn_code_t btn_value);
+
+const mfbd_group_t test_btn_group = {
+    mfbd_btn_check,
+    mfbd_btn_value_report,
+		test_tbtn_list,
+#if MFBD_PARAMS_SAME_IN_GROUP
+
+#if MFBD_USE_TINY_BUTTON || MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON
+    3,
+#endif /*  MFBD_USE_TINY_BUTTON || MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON */
+
+#if MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON
+    30,
+    150,
+#endif /* MFBD_USE_NORMAL_BUTTON || MFBD_USE_MULTIFUCNTION_BUTTON */
+
+#if MFBD_USE_MULTIFUCNTION_BUTTON
+    75,
+#endif /* MFBD_USE_MULTIFUCNTION_BUTTON */
+
+#endif /*MFBD_PARAMS_SAME_IN_GROUP*/
+};
+uint8_t mfbd_btn_check(mfbd_btn_index_t btn_index)
+{
+	switch (btn_index)
+	{
+	case 1:
+			if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
+			{
+					return MFBD_BTN_STATE_DOWN;
+			}
+			break;
+	default:
+			break;
+	}
+	return MFBD_BTN_STATE_UP;
+}
+
+void mfbd_btn_value_report(mfbd_btn_code_t btn_value)
+{
+	printf("[mfbd]0x%04x\n", btn_value);
+}
+
+#endif /* MFBD_USE_TINY_BUTTON */
 
 void tfdb_update_boot_time(void)
 {
@@ -106,30 +157,29 @@ void tfdb_update_boot_time(void)
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
 
-osThreadId_t key_scan_ID, app_main_ID, LCD_Update_ID;
-osTimerId_t timer0;
-osEventFlagsId_t LCD_Update_flagID;
+__IO osThreadId_t key_scan_ID, app_main_ID, LCD_Update_ID;
+__IO osTimerId_t timer0;
+__IO osEventFlagsId_t LCD_Update_flagID;
 
-key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .released = 1};
-ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f, .Direction = 0};
-ADC_result_struct ADC_result = {.result = {0}, .temp = 0.0f, .vcc = 0.0f};
-menu_state_enum menu_state = menu_default;
-screen_direction_enum screen_direction = SCREEN_HORIZONTAL_REVERSED;
+__IO key_state_struct key_state = {.key_pressed_time = 0, .key_hold_time = 0, .released = 1};
+__IO ina226_info_struct ina226_info = {.Voltage = 0.0f, .Current = 0.0f, .Power = 0.0f, .Direction = 0};
+__IO ADC_result_struct ADC_result = {.result = {0}, .temp = 0.0f, .vcc = 0.0f};
+__IO menu_state_enum menu_state = menu_default;
+__IO screen_direction_enum screen_direction = SCREEN_HORIZONTAL_REVERSED;
 
 struct Queue Voltage_queue = {.front = 0, .rear = 0};
 struct Queue Current_queue = {.front = 0, .rear = 0};
 struct Queue Power_queue = {.front = 0, .rear = 0};
 
-float mAh = 0.0f;
-float mWh = 0.0f;
-float time_past = 0.0f;
+__IO float mAh = 0.0f;
+__IO float mWh = 0.0f;
+__IO float time_past = 0.0f;
 
-uint8_t Status = 0;
 uint8_t SavedPoint[SIZE] = {0};
 uint32_t i2c_last_tick;
 char sprintf_buf[32] = {0};
 
-bool __SPI_8bit_mode;
+__IO bool __SPI_8bit_mode;
 
 /* add user code end private variables */
 /* private function prototypes --------------------------------------------*/
@@ -139,6 +189,8 @@ bool __SPI_8bit_mode;
 
 /* private user code ---------------------------------------------------------*/
 /* add user code begin 0 */
+
+#pragma clang optimize off
 
 static const osThreadAttr_t ThreadAttr_app_main =
 	{
@@ -194,6 +246,9 @@ __NO_RETURN void key_scan_thread1(void *arg)
 {
 	for (;;)
 	{
+#ifdef MFBD_USE_TINY_BUTTON
+		mfbd_group_scan(&test_btn_group);
+#else
 		if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
 		{
 			osDelay(50);
@@ -235,7 +290,8 @@ __NO_RETURN void key_scan_thread1(void *arg)
 				}
 			}
 		}
-		osDelay(50);
+#endif
+		osDelay(10);
 	}
 }
 
@@ -408,8 +464,8 @@ void app_main(void *arg)
 
 	//osKernelLock();
 	//W25Q_EraseChip();
-	W25Q_WriteFont1206();
-	W25Q_WriteFont2412();
+	//W25Q_WriteFont1206();
+	//W25Q_WriteFont2412();
 //	W25Q_DisableWrite();
 //	W25Q_CheckFont1206();
 //	W25Q_CheckFont2412();
@@ -483,4 +539,5 @@ int main(void)
 
 		/* add user code end 3 */
 	}
+	#pragma clang optimize on
 }

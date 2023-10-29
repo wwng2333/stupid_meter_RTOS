@@ -8,6 +8,8 @@
 extern screen_direction_enum screen_direction;
 extern bool __SPI_8bit_mode;
 
+#pragma clang optimize off
+
 /**
   * @brief  init dma1 channel3 for "spi1_tx"
   * @param  none
@@ -392,7 +394,7 @@ void LCD_Init_Swap(void)
 	LCD_WR_REG(0x2C); 
 }
 
-
+#pragma clang optimize on
 
 
 
