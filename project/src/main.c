@@ -79,7 +79,7 @@ uint8_t test_buf[TFDB_ALIGNED_RW_BUFFER_SIZE(2,1)];
 uint16_t boot_time;
 
 #if MFBD_USE_NORMAL_BUTTON
-MFBD_NBTN_DEFINE(test_nbtn, 0, 3, 30, 100, 0x1301, 0x1300, 0x1302);
+MFBD_NBTN_DEFINE(test_nbtn, 0, 10, 0, 100, 0x1301, 0x1300, 0x1302);
 MFBD_NBTN_ARRAYLIST(test_nbtn_list, &test_nbtn);
 uint8_t mfbd_btn_check(mfbd_btn_index_t btn_index);
 void mfbd_btn_callback(mfbd_btn_code_t btn_value);
@@ -95,7 +95,7 @@ uint8_t mfbd_btn_check(mfbd_btn_index_t btn_index)
 	if (gpio_input_data_bit_read(KEY_PIN_GPIO_Port, KEY_PIN_Pin) == RESET)
 	{
 		return MFBD_BTN_STATE_DOWN;
-	}	
+	}
 	else
 	{
 		return MFBD_BTN_STATE_UP;
@@ -156,32 +156,45 @@ uint32_t i2c_last_tick;
 char sprintf_buf[32] = {0};
 
 __IO bool __SPI_8bit_mode;
-
 	
 void mfbd_btn_callback(mfbd_btn_code_t btn_value)
 {
+	uint32_t flag_now = 0;
 	printf("[mfbd]0x%04x\n", btn_value);
 	switch(btn_value)
 	{
 		case 0x1301	: // short press
-			if (menu_state != menu_2nd_menu)
-				menu_state++;
-			else
-				menu_state = menu_default;
+			osEventFlagsSet(LCD_Update_flagID, KEY_DOWN_FLAG);
 			break;
 		case 0x1302: // long press
-			if (screen_direction == SCREEN_HORIZONTAL_REVERSED)
-				screen_direction = SCREEN_HORIZONTAL;
-			else
-				screen_direction = SCREEN_HORIZONTAL_REVERSED;
-			LCD_Init_Swap();
+			osEventFlagsSet(LCD_Update_flagID, KEY_LONG_FLAG);
+			break;
+		case 0x1300: // key up
+			flag_now = osEventFlagsGet(LCD_Update_flagID);
+			if(flag_now & KEY_LONG_FLAG)
+			{
+				osEventFlagsClear(LCD_Update_flagID, KEY_LONG_FLAG);
+				osEventFlagsClear(LCD_Update_flagID, KEY_DOWN_FLAG);
+				if (screen_direction == SCREEN_HORIZONTAL_REVERSED)
+					screen_direction = SCREEN_HORIZONTAL;
+				else
+					screen_direction = SCREEN_HORIZONTAL_REVERSED;
+				LCD_Init_Swap();
+			}
+			else if(flag_now & KEY_DOWN_FLAG)
+			{
+				osEventFlagsClear(LCD_Update_flagID, KEY_DOWN_FLAG);
+				if (menu_state != menu_2nd_menu)
+					menu_state++;
+				else
+					menu_state = menu_default;
+			}
+			LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
+			osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 			break;
 		default: 
-			return;
 			break;
 	}
-	LCD_Fill(0, 0, LCD_W, LCD_H, BLACK);
-	osEventFlagsSet(LCD_Update_flagID, LCD_MAIN_UPDATE_FLAG);
 }
 
 /* add user code end private variables */

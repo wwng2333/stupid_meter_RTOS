@@ -86,6 +86,9 @@ typedef struct ADC_result_struct
 
 #define LCD_KEY_UPDATE_FLAG (1U << 0)
 #define LCD_MAIN_UPDATE_FLAG (1U << 1)
+#define KEY_DOWN_FLAG (1U << 2)
+#define KEY_LONG_FLAG (1U << 3)
+#define KEY_UP_FLAG (1U << 4)
 
 #define __USE_SPI_DMA
 /* add user code end exported constants */
